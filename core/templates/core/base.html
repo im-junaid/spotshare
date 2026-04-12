@@ -1,0 +1,59 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% comment %} TODO : minify for production (tailwind)  {% endcomment %}
+    <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
+    <title>
+      {% block title %}
+      {% endblock title %}
+    </title>
+    {% block head %}
+    {% endblock head %}
+    {% comment %} lenis {% endcomment %}
+    <script src="{% static 'lib/lenis/lenis.min.js' %}"></script>
+    <script>
+        const lenis = new Lenis({
+            lerp: 0.08, // smoothness (lower = smoother)
+            wheelMultiplier: 1
+        });
+
+        function raf(time) {
+            lenis.raf(time);
+            requestAnimationFrame(raf);
+        }
+
+        requestAnimationFrame(raf);
+    </script>
+    <style>
+        html.lenis,
+        html.lenis body {
+            height: auto;
+        }
+
+        .lenis.lenis-smooth {
+            scroll-behavior: auto !important;
+        }
+
+        .lenis.lenis-stopped {
+            overflow: hidden;
+        }
+    </style>
+  </head>
+  <body class="bg-dark dark:text-white min-h-screen">
+    <!-- Desktop Navbar -->
+    {% include "core/components/navbar_desktop.html" %}
+    <main>
+      {% block content %}
+      {% endblock content %}
+    </main>
+    <!-- Mobile Bottom Nav -->
+    {% comment %} {% include "core/components/navbar_mobile.html" %} {% endcomment %}
+    {% comment %} {% include "core/components/footer.html" %} {% endcomment %}
+    {% block scripts %}
+    {% endblock scripts %}
+    <script src="{% static 'js/base.js' %}"></script>
+  </body>
+</html>

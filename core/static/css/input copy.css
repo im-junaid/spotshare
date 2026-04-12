@@ -1,0 +1,61 @@
+/* core/static/css/input.css */
+@import "tailwindcss";
+
+@source "../../../templates/**/*.html";
+@source "../../**/templates/**/*.html";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* BRAND */
+  --color-primary: 70 101 0;
+  --color-primary-bright: 190 248 84;
+
+  /* TEXT */
+  --color-foreground: 44 47 48;
+  --color-muted: 89 92 93;
+
+  --font-sans:
+    ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol", "Noto Color Emoji";
+  --font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+
+  /* SURFACES */
+  --color-background: 245 246 247;
+  --color-surface: 255 255 255;
+  --color-surface-low: 239 241 242;
+  --color-surface-high: 224 227 228;
+
+  /* UI */
+  --color-border: 171 173 174;
+  --color-card: 255 255 255;
+}
+
+@layer theme {
+  .dark {
+    --color-primary: 190 248 84;
+    --color-primary-bright: 220 255 157;
+
+    --color-foreground: 239 241 242;
+    --color-muted: 180 180 180;
+
+    --color-background: 18 18 18;
+    --color-surface: 40 40 40;
+    --color-surface-low: 30 30 30;
+    --color-surface-high: 60 60 60;
+
+    --color-border: 80 80 80;
+    --color-card: 35 35 35;
+  }
+}
+
+/* Custom */
+.btn {
+  @apply px-4 py-2 rounded-md font-medium transition;
+}
+
+.btn-primary {
+  @apply bg-primary text-whit;
+}
