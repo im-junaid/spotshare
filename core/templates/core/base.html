@@ -41,8 +41,14 @@
             overflow: hidden;
         }
     </style>
+    {% comment %} Theme selection {% endcomment %}
+    <script>
+        if (localStorage.getItem('theme') === 'light') {
+            document.documentElement.classList.add('light');
+        }
+    </script>
   </head>
-  <body class="bg-dark dark:text-white min-h-screen">
+  <body class="bg-background text-foreground min-h-screen">
     <!-- Desktop Navbar -->
     {% include "core/components/navbar_desktop.html" %}
     <main>

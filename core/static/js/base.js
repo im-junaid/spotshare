@@ -1,3 +1,4 @@
+// --- TOGGLE SIDE BAR FOR MOBILE ---
 function toggleMobileDrawer() {
   const drawer = document.getElementById("mobile-drawer");
   const backdrop = document.getElementById("drawer-backdrop");
@@ -38,3 +39,17 @@ document.addEventListener("keydown", (e) => {
     }
   }
 });
+
+// --- TOGGLE THEME SWITCH ---
+function toggleTheme() {
+  const html = document.documentElement;
+
+  // Toggle the 'light' class
+  if (html.classList.contains("light")) {
+    html.classList.remove("light");
+    localStorage.setItem("theme", "dark");
+  } else {
+    html.classList.add("light");
+    localStorage.setItem("theme", "light");
+  }
+}

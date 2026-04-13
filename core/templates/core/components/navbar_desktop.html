@@ -1,10 +1,10 @@
 <div class="nav-container">
   <nav class="w-full fixed top-0 left-0 z-100 py-4 bg-transparent transition-all">
     <div class="max-w-7xl mx-auto px-6 flex items-center justify-between">
-      <div class="brand flex items-center">
+      <div class="flex items-center">
         <a href="#"
-           class="flex items-center gap-2 no-underline text-white font-semibold text-xl">
-          <div class="w-8 h-8 flex items-center justify-center bg-primary rounded-[50%] text-dark ">
+           class="flex items-center gap-2 no-underline text-forground font-semibold text-xl">
+          <div class="w-9 h-9 flex items-center justify-center bg-brand-primary rounded-[50%] text-brand-secondary ">
             <svg xmlns="http://www.w3.org/2000/svg"
                  width="24"
                  height="24"
@@ -35,11 +35,11 @@
         </li>
       </ul>
       <div class="hidden md:flex items-center gap-3">
-        <a href="#" class="btn btn-outline flex text-white">Log In</a>
-        <a href="#" class="btn btn-primary text-dark">Sign Up</a>
+        <a href="#" class="btn btn-outline flex text-forground">Log In</a>
+        <a href="#" class="btn btn-primary">Sign Up</a>
       </div>
       <button id="open-mobile-drawer"
-              class="flex md:hidden w-10 h-10 text-white items-center justify-center cursor-pointer bg-none border-none"
+              class="flex md:hidden w-10 h-10 text-forground items-center justify-center cursor-pointer bg-none border-none"
               aria-label="menu">
         <svg xmlns="http://www.w3.org/2000/svg"
              width="24"
@@ -63,9 +63,9 @@
     <div id="drawer-backdrop"
          class="fixed inset-0 bg-black/60 opacity-0 pointer-events-none transition-opacity duration-300"></div>
     <div id="mobile-drawer"
-         class="fixed top-0 right-0 bottom-0 w-75 max-w-[85vw] bg-dark-secondary z-200 shadow-xl border-l border-dark-border p-6 translate-x-full transition-transform duration-300 ease-in-out">
+         class="fixed top-0 right-0 bottom-0 w-75 max-w-[85vw] bg-secondary z-200 shadow-xl border-l border-border p-6 translate-x-full transition-transform duration-300 ease-in-out">
       <div class="flex items-center justify-between mb-6">
-        <span class="text-md text-white ">Menu</span>
+        <span class="text-lg text-forground font-bold">Menu</span>
         <button id="close-mobile-drawer"
                 class="w-10 h-10 p-0 inline-flex items-center justify-center bg-transparent border-none cursor-pointer transition-all"
                 aria-label="close">
@@ -85,8 +85,8 @@
         </button>
       </div>
       <div class="grid grid-cols-2 gap-2 mb-6">
-        <a href="#" class="btn btn-outline  text-white">Log In</a>
-        <a href="#" class="btn btn-primary text-dark">Sign Up</a>
+        <a href="#" class="btn btn-outline">Log In</a>
+        <a href="#" class="btn btn-primary">Sign Up</a>
       </div>
       <div class="flex-1 overflow-y-auto">
         <a href="#" class="drawer-link">About Us</a>
