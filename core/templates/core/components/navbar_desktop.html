@@ -1,10 +1,10 @@
-<div class="nav-container">
-  <nav class="w-full fixed top-0 left-0 z-100 py-4 bg-transparent transition-all">
+<header class="flex-none">
+  <nav class="w-full top-0 left-0 z-100 py-4 bg-transparent transition-all">
     <div class="max-w-7xl mx-auto px-6 flex items-center justify-between">
       <div class="flex items-center">
-        <a href="#"
+        <a href="{% url "core:home" %}"
            class="flex items-center gap-2 no-underline text-forground font-semibold text-xl">
-          <div class="w-9 h-9 flex items-center justify-center bg-brand-primary rounded-[50%] text-brand-secondary ">
+          <div class="w-9 h-9 flex items-center justify-center bg-brand-primary rounded-[50%] text-brand-secondary">
             <svg xmlns="http://www.w3.org/2000/svg"
                  width="24"
                  height="24"
@@ -35,12 +35,127 @@
         </li>
       </ul>
       <div class="hidden md:flex items-center gap-3">
-        <a href="#" class="btn btn-outline flex text-forground">Log In</a>
-        <a href="#" class="btn btn-primary">Sign Up</a>
-      </div>
-      <button id="open-mobile-drawer"
-              class="flex md:hidden w-10 h-10 text-forground items-center justify-center cursor-pointer bg-none border-none"
-              aria-label="menu">
+        <button onclick="toggleTheme()"
+                class="btn btn-outline p-2.5!"
+                aria-lable="Toggle Theme">
+          <span class="sun-icon">
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 width="20"
+                 height="20"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2"
+                 stroke-linecap="round"
+                 stroke-linejoin="round"
+                 class="lucide lucide-sun-icon lucide-sun">
+              <circle cx="12" cy="12" r="4" />
+              <path d="M12 2v2" />
+              <path d="M12 20v2" />
+              <path d="m4.93 4.93 1.41 1.41" />
+              <path d="m17.66 17.66 1.41 1.41" />
+              <path d="M2 12h2" />
+              <path d="M20 12h2" />
+              <path d="m6.34 17.66-1.41 1.41" />
+              <path d="m19.07 4.93-1.41 1.41" />
+            </svg>
+          </span><span class="moon-icon hidden">
+          <svg xmlns="http://www.w3.org/2000/svg"
+               width="20"
+               height="20"
+               viewBox="0 0 24 24"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="2"
+               stroke-linecap="round"
+               stroke-linejoin="round"
+               class="lucide lucide-moon-icon lucide-moon">
+            <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" />
+          </svg>
+        </span>
+      </button>
+      {% if user.is_authenticated %}
+        <a href="{% url 'core:logout' %}"
+           class="btn btn-outline flex text-forground hover:scale-[1.01]">Log Out</a>
+      {% else %}
+        <a href="{% url 'core:login' %}"
+           class="btn btn-outline flex text-forground hover:scale-[1.01]">Log In</a>
+        <a href="{% url 'core:signup' %}" class="btn btn-primary">Sign Up</a>
+      {% endif %}
+    </div>
+    <div class="flex md:hidden items-center gap-2">
+      <button onclick="toggleTheme()"
+              class="btn btn-outline p-2.5!"
+              aria-lable="Toggle Theme">
+        <span class="sun-icon">
+          <svg xmlns="http://www.w3.org/2000/svg"
+               width="20"
+               height="20"
+               viewBox="0 0 24 24"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="2"
+               stroke-linecap="round"
+               stroke-linejoin="round"
+               class="lucide lucide-sun-icon lucide-sun">
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2v2" />
+            <path d="M12 20v2" />
+            <path d="m4.93 4.93 1.41 1.41" />
+            <path d="m17.66 17.66 1.41 1.41" />
+            <path d="M2 12h2" />
+            <path d="M20 12h2" />
+            <path d="m6.34 17.66-1.41 1.41" />
+            <path d="m19.07 4.93-1.41 1.41" />
+          </svg>
+        </span><span class="moon-icon hidden">
+        <svg xmlns="http://www.w3.org/2000/svg"
+             width="20"
+             height="20"
+             viewBox="0 0 24 24"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="2"
+             stroke-linecap="round"
+             stroke-linejoin="round"
+             class="lucide lucide-moon-icon lucide-moon">
+          <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" />
+        </svg>
+      </span>
+    </button>
+    <button id="open-mobile-drawer"
+            class="flex md:hidden w-10 h-10 text-forground items-center justify-center cursor-pointer bg-none border-none"
+            aria-label="menu">
+      <svg xmlns="http://www.w3.org/2000/svg"
+           width="24"
+           height="24"
+           viewBox="0 0 24 24"
+           fill="none"
+           stroke="currentColor"
+           stroke-width="2"
+           stroke-linecap="round"
+           stroke-linejoin="round"
+           class="lucide lucide-menu-icon lucide-menu">
+        <path d="M4 5h16" />
+        <path d="M4 12h16" />
+        <path d="M4 19h16" />
+      </svg>
+    </button>
+  </div>
+</div>
+</nav>
+{% comment %} Mobile sidebar {% endcomment %}
+<div id="mobile-drawer-container">
+  <div id="drawer-backdrop"
+       class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-300 opacity-0 pointer-events-none">
+  </div>
+  <div id="mobile-drawer"
+       class="fixed top-0 right-0 bottom-0 w-75 max-w-[85vw] bg-secondary z-200 shadow-xl border-l border-border p-6 translate-x-full transition-transform duration-300 ease-in-out">
+    <div class="flex items-center justify-between mb-6">
+      <span class="text-lg text-forground font-bold">Menu</span>
+      <button id="close-mobile-drawer"
+              class="w-10 h-10 p-0 inline-flex items-center justify-center bg-transparent border-none cursor-pointer transition-all"
+              aria-label="close">
         <svg xmlns="http://www.w3.org/2000/svg"
              width="24"
              height="24"
@@ -50,49 +165,27 @@
              stroke-width="2"
              stroke-linecap="round"
              stroke-linejoin="round"
-             class="lucide lucide-menu-icon lucide-menu">
-          <path d="M4 5h16" />
-          <path d="M4 12h16" />
-          <path d="M4 19h16" />
+             class="lucide lucide-x-icon lucide-x">
+          <path d="M18 6 6 18" />
+          <path d="m6 6 12 12" />
         </svg>
       </button>
     </div>
-  </nav>
-  {% comment %} Mobile sidebar {% endcomment %}
-  <div id="mobile-drawer-container">
-    <div id="drawer-backdrop"
-         class="fixed inset-0 bg-black/60 opacity-0 pointer-events-none transition-opacity duration-300"></div>
-    <div id="mobile-drawer"
-         class="fixed top-0 right-0 bottom-0 w-75 max-w-[85vw] bg-secondary z-200 shadow-xl border-l border-border p-6 translate-x-full transition-transform duration-300 ease-in-out">
-      <div class="flex items-center justify-between mb-6">
-        <span class="text-lg text-forground font-bold">Menu</span>
-        <button id="close-mobile-drawer"
-                class="w-10 h-10 p-0 inline-flex items-center justify-center bg-transparent border-none cursor-pointer transition-all"
-                aria-label="close">
-          <svg xmlns="http://www.w3.org/2000/svg"
-               width="24"
-               height="24"
-               viewBox="0 0 24 24"
-               fill="none"
-               stroke="currentColor"
-               stroke-width="2"
-               stroke-linecap="round"
-               stroke-linejoin="round"
-               class="lucide lucide-x-icon lucide-x">
-            <path d="M18 6 6 18" />
-            <path d="m6 6 12 12" />
-          </svg>
-        </button>
-      </div>
-      <div class="grid grid-cols-2 gap-2 mb-6">
-        <a href="#" class="btn btn-outline">Log In</a>
-        <a href="#" class="btn btn-primary">Sign Up</a>
-      </div>
-      <div class="flex-1 overflow-y-auto">
-        <a href="#" class="drawer-link">About Us</a>
-        <a href="#" class="drawer-link">How it Works</a>
-        <a href="#" class="drawer-link">Find Parking</a>
-      </div>
+    <div class="flex gap-2 items-center mb-6">
+      {% if user.is_authenticated %}
+        <a href="{% url 'core:logout' %}"
+           class="flex-1 btn btn-outline hover:scale-[1.01]">Log Out</a>
+      {% else %}
+        <a href="{% url 'core:login' %}"
+           class="flex-1 btn btn-outline hover:scale-[1.01]">Log In</a>
+        <a href="{% url 'core:signup' %}" class="flex-1 btn btn-primary">Sign Up</a>
+      {% endif %}
+    </div>
+    <div class="flex-1 overflow-y-auto">
+      <a href="#" class="drawer-link">About Us</a>
+      <a href="#" class="drawer-link">How it Works</a>
+      <a href="#" class="drawer-link">Find Parking</a>
     </div>
   </div>
 </div>
+</header>

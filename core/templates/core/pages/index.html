@@ -5,6 +5,11 @@
 {% endblock title %}
 {% block content %}
   <div>
-    {% comment %} <h1 class="text-3xl font-bold underline text-red-500">Hello world!</h1> {% endcomment %}
+    {% if user.is_authenticated %}
+      <h1 class="text-3xl font-bold underline text-green-500">Welcome back, {{ user.full_name|default:user.email }}</h1>
+      <p class="text-gray-600">Logged in as: {{ user.email }}</p>
+    {% else %}
+      <h1 class="text-3xl font-bold underline text-red-500">Hello, Guest! Please sign in.</h1>
+    {% endif %}
   </div>
 {% endblock content %}

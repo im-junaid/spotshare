@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {% comment %} TODO : minify for production (tailwind)  {% endcomment %}
-    <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
+    <link rel="stylesheet" href="{% static 'css/tailwind-dev.css' %}">
     <title>
       {% block title %}
       {% endblock title %}
@@ -43,23 +43,29 @@
     </style>
     {% comment %} Theme selection {% endcomment %}
     <script>
-        if (localStorage.getItem('theme') === 'light') {
+        const savedTheme = localStorage.getItem('theme');
+        const systemPrefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+        if (savedTheme === 'light' || (!savedTheme && systemPrefersLight)) {
             document.documentElement.classList.add('light');
         }
     </script>
   </head>
-  <body class="bg-background text-foreground min-h-screen">
+  <body class="bg-background text-foreground flex flex-col min-h-screen">
     <!-- Desktop Navbar -->
     {% include "core/components/navbar_desktop.html" %}
-    <main>
+    <main class="flex-1 flex flex-col overflow-y-auto">
       {% block content %}
       {% endblock content %}
     </main>
+    <div id="toast-root"
+         class="toast-group fixed z-200 flex flex-col pointer-events-none bottom-6 left-1/2 -translate-x-1/2 items-center md:top-8 md:right-8 md:left-auto md:translate-x-0 md:items-end">
+    </div>
     <!-- Mobile Bottom Nav -->
     {% comment %} {% include "core/components/navbar_mobile.html" %} {% endcomment %}
     {% comment %} {% include "core/components/footer.html" %} {% endcomment %}
+    <script src="{% static 'js/base.js' %}"></script>
+    <script src="{% static 'js/components/toast.js' %}"></script>
     {% block scripts %}
     {% endblock scripts %}
-    <script src="{% static 'js/base.js' %}"></script>
   </body>
 </html>
