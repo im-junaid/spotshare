@@ -4,12 +4,23 @@
   Home
 {% endblock title %}
 {% block content %}
-  <div>
+  <div class="min-h-screen flex flex-col items-center justify-center pt-20">
     {% if user.is_authenticated %}
-      <h1 class="text-3xl font-bold underline text-green-500">Welcome back, {{ user.full_name|default:user.email }}</h1>
-      <p class="text-gray-600">Logged in as: {{ user.email }}</p>
+      <h1 class="text-4xl md:text-6xl font-bold text-primary animate-on-scroll">
+        Welcome back, {{ user.full_name|default:user.email }}
+      </h1>
+      <p class="mt-4 text-xl text-muted-foreground animate-on-scroll delay-100">Logged in as: {{ user.email }}</p>
+      <div class="mt-12 p-8 bg-card rounded-2xl border border-border animate-on-scroll delay-200">
+        <h2 class="text-2xl font-bold mb-4">Your Dashboard</h2>
+        <p class="text-muted-foreground">This is where your dashboard content will appear.</p>
+      </div>
     {% else %}
-      <h1 class="text-3xl font-bold underline text-red-500">Hello, Guest! Please sign in.</h1>
+      <h1 class="text-4xl md:text-6xl font-bold text-foreground animate-on-scroll">SpotShare</h1>
+      <p class="mt-4 text-xl text-muted-foreground animate-on-scroll delay-100">Find and share parking spots with ease.</p>
+      <div class="mt-8 flex gap-4 animate-on-scroll delay-200">
+        <a href="{% url 'core:signup' %}" class="btn btn-primary">Get Started</a>
+        <a href="{% url 'core:login' %}" class="btn btn-outline">Sign In</a>
+      </div>
     {% endif %}
   </div>
 {% endblock content %}

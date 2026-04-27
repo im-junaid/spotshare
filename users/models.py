@@ -30,9 +30,11 @@ class UserManager(BaseUserManager):
 
 # USER MODEL
 class User(AbstractBaseUser, PermissionsMixin):
+    ROLE_CHOICES = [("ADMIN", "ADMIN"), ("HOST", "HOST"), ("DRIVER", "DRIVER")]
     email = models.EmailField(unique=True)
     full_name = models.CharField(max_length=255)
     phone = models.CharField(max_length=15)
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="DRIVER")
 
     # Required for Django Admin/Permissions
     is_active = models.BooleanField(default=True)

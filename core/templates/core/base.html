@@ -15,23 +15,59 @@
     {% comment %} lenis {% endcomment %}
     <script src="{% static 'lib/lenis/lenis.min.js' %}"></script>
     <script>
-        const lenis = new Lenis({
-            lerp: 0.08, // smoothness (lower = smoother)
-            wheelMultiplier: 1
-        });
+        if (typeof Lenis !== 'undefined') {
+            const lenis = new Lenis({
+                duration: 1.2,
+                easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+                direction: 'vertical',
+                gestureDirection: 'vertical',
+                smooth: true,
+                mouseMultiplier: 1,
+                smoothTouch: false,
+                touchMultiplier: 2,
+                infinite: false,
+            });
 
-        function raf(time) {
-            lenis.raf(time);
+            // Expose lenis globally for pausing/resuming during modals
+            window.lenis = lenis;
+
+            const nav = document.getElementById('main-nav');
+            lenis.on('scroll', (e) => {
+                // If scrolled more than 50px, add the glass effect
+                if (nav) {
+                    if (e.scroll > 50) {
+                        nav.classList.add('nav-scrolled');
+                    } else {
+                        nav.classList.remove('nav-scrolled');
+                    }
+                }
+            });
+
+            function raf(time) {
+                lenis.raf(time);
+                requestAnimationFrame(raf);
+            }
             requestAnimationFrame(raf);
         }
-
-        requestAnimationFrame(raf);
     </script>
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
         html.lenis,
         html.lenis body {
             height: auto;
         }
+
+        .lenis.lenis-smooth [data-lenis-prevent] {
+            overscroll-behavior: contain;
+        }
+
 
         .lenis.lenis-smooth {
             scroll-behavior: auto !important;
@@ -50,7 +86,7 @@
         }
     </script>
   </head>
-  <body class="bg-background text-foreground flex flex-col min-h-screen">
+  <body class="bg-background text-foreground flex flex-col min-h-screen selection:bg-brand-primary selection:text-black">
     <!-- Desktop Navbar -->
     {% include "core/components/navbar_desktop.html" %}
     <main class="flex-1 flex flex-col overflow-y-auto">
@@ -62,9 +98,10 @@
     </div>
     <!-- Mobile Bottom Nav -->
     {% comment %} {% include "core/components/navbar_mobile.html" %} {% endcomment %}
-    {% comment %} {% include "core/components/footer.html" %} {% endcomment %}
+    {% include "core/components/footer.html" %}
     <script src="{% static 'js/base.js' %}"></script>
     <script src="{% static 'js/components/toast.js' %}"></script>
+    <script src="{% static 'js/animate.js' %}"></script>
     {% block scripts %}
     {% endblock scripts %}
   </body>

@@ -78,10 +78,21 @@ WSGI_APPLICATION = "spotshare.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": BASE_DIR / "db.sqlite3",
+#     }
+# }
+
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.getenv("DATABASE"),  # The database name you created
+        "USER": os.getenv("USER"),  # The username you created
+        "PASSWORD": os.getenv("PASSWORD"),  # The password you set
+        "HOST": os.getenv("HOST"),  # 'localhost' works fine within WSL
+        "PORT": os.getenv("PORT"),  # Default PostgreSQL port
     }
 }
 

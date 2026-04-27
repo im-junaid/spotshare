@@ -85,6 +85,66 @@
   }
 
   /* Animations */
+  .animate-on-scroll {
+    opacity: 0;
+    transform: translateY(24px);
+    transition:
+      opacity 0.7s cubic-bezier(0.4, 0, 0.2, 1),
+      transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .animate-on-scroll.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .delay-100 {
+    transition-delay: 0.1s;
+  }
+  .delay-200 {
+    transition-delay: 0.2s;
+  }
+  .delay-300 {
+    transition-delay: 0.3s;
+  }
+  .delay-400 {
+    transition-delay: 0.4s;
+  }
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-12px);
+    }
+  }
+  .float,
+  .animate-float {
+    animation: float 4s ease-in-out infinite;
+  }
+
+  @keyframes spin-slow {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  .animate-spin-slow {
+    animation: spin-slow 8s linear infinite;
+  }
+
+  @keyframes pulse-lime {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 var(--color-brand-primary-glow);
+    }
+    50% {
+      box-shadow: 0 0 0 12px transparent;
+    }
+  }
+
   @keyframes shake {
     0%,
     100% {
@@ -157,6 +217,39 @@
     -webkit-box-shadow: 0 0 0px 1000px rgb(23, 23, 23) inset !important;
     -webkit-text-fill-color: rgb(250, 250, 250) !important;
     transition: background-color 5000s ease-in-out 0s;
+  }
+
+  /* nav smooth scroll */
+  /* Glassmorphism effect when scrolled */
+  .nav-scrolled {
+    @apply py-3; /* Slightly shrink the height for a compact feel */
+    background-color: rgba(
+      var(--bg-background-rgb),
+      0.7
+    ); /* Adjust based on your theme */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Ensure smooth transition for all properties */
+  #main-nav {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-dark);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-white-12);
+    border-radius: var(--radius-full);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-white-40);
   }
 }
 

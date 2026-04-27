@@ -76,14 +76,14 @@ document.addEventListener("DOMContentLoaded", () => {
       backdrop.classList.replace("opacity-0", "opacity-100");
       backdrop.classList.replace("pointer-events-none", "pointer-events-auto");
       document.body.style.overflow = "hidden";
-      // if (window.lenis) window.lenis.stop();
+      if (window.lenis) window.lenis.stop();
     } else {
       // CLOSE STATE
       drawer.classList.replace("translate-x-0", "translate-x-full");
       backdrop.classList.replace("opacity-100", "opacity-0");
       backdrop.classList.replace("pointer-events-auto", "pointer-events-none");
       document.body.style.overflow = "";
-      // if (window.lenis) window.lenis.start();
+      if (window.lenis) window.lenis.start();
     }
   }
 
@@ -96,6 +96,16 @@ document.addEventListener("DOMContentLoaded", () => {
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && drawer?.classList.contains("translate-x-0")) {
       toggleMobileDrawer();
+    }
+  });
+
+  // Setup sticky navbar on scroll
+  const nav = document.getElementById("main-nav");
+  lenis.on("scroll", (e) => {
+    if (e.scroll > 50) {
+      nav.classList.add("nav-scrolled");
+    } else {
+      nav.classList.remove("nav-scrolled");
     }
   });
 });
