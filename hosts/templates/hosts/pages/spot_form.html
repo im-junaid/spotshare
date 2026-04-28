@@ -1,0 +1,549 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% block title %}
+  {% if is_edit %}
+    Edit {{ spot.title }}
+  {% else %}
+    List New Spot
+  {% endif %}
+  — SpotShare
+{% endblock title %}
+{% block head %}
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+      /* Wizard step transitions */
+      .wizard-step {
+          display: none;
+          opacity: 0;
+          transform: translateX(30px);
+          transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .wizard-step.active {
+          display: block;
+      }
+
+      .wizard-step.visible {
+          opacity: 1;
+          transform: translateX(0);
+      }
+
+      .wizard-step.exit-left {
+          opacity: 0;
+          transform: translateX(-30px);
+      }
+
+      /* Leaflet map adjustments */
+      .leaflet-container {
+          font-family: var(--font-body);
+          background: rgb(var(--background));
+      }
+
+      .leaflet-control-attribution {
+          background: rgba(var(--card), 0.5) !important;
+          color: rgb(var(--foreground), 0.4) !important;
+          font-size: 9px !important;
+          backdrop-filter: blur(4px);
+      }
+
+      .leaflet-control-attribution a {
+          color: rgb(var(--foreground), 0.6) !important;
+      }
+
+      .leaflet-control-zoom a {
+          background: rgb(var(--card)) !important;
+          color: rgb(var(--foreground)) !important;
+          border: 1px solid rgba(var(--foreground), 0.1) !important;
+          backdrop-filter: blur(8px);
+      }
+
+      .leaflet-control-zoom a:hover {
+          background: rgba(var(--card), 1) !important;
+          color: rgb(var(--brand-primary)) !important;
+      }
+
+      /* Custom map pin pulse */
+      .map-pin-dot {
+          width: 18px;
+          height: 18px;
+          background: rgb(var(--brand-primary));
+          border-radius: 50%;
+          border: 3px solid rgb(var(--background));
+          box-shadow: 0 0 0 0 rgba(var(--brand-primary), 0.4);
+          animation: pin-pulse 2s ease-in-out infinite;
+      }
+
+      @keyframes pin-pulse {
+
+          0%,
+          100% {
+              box-shadow: 0 0 0 0 rgba(var(--brand-primary), 0.4);
+          }
+
+          50% {
+              box-shadow: 0 0 0 16px rgba(var(--brand-primary), 0);
+          }
+      }
+
+      /* Photo upload cards */
+      .photo-slot {
+          position: relative;
+          overflow: hidden;
+      }
+
+      .photo-slot .preview-img {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          border-radius: inherit;
+          z-index: 1;
+      }
+
+      .photo-slot .placeholder-ui {
+          position: relative;
+          z-index: 0;
+      }
+
+      .photo-slot.has-image .placeholder-ui {
+          display: none;
+      }
+
+      .photo-slot .remove-preview {
+          position: absolute;
+          top: 8px;
+          right: 8px;
+          z-index: 5;
+          width: 28px;
+          height: 28px;
+          border-radius: 8px;
+          background: rgba(0, 0, 0, 0.7);
+          backdrop-filter: blur(8px);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          color: white;
+          display: none;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          font-size: 14px;
+          line-height: 1;
+          transition: all 0.2s;
+      }
+
+      .photo-slot.has-image .remove-preview {
+          display: flex;
+      }
+
+      .photo-slot.has-image .remove-preview:hover {
+          background: rgba(239, 68, 68, 0.8);
+      }
+  </style>
+{% endblock head %}
+{% block content %}
+  <div class="min-h-screen w-full pt-28 pb-20 max-w-6xl mx-auto  px-4 sm:px-6 md:px-8">
+    <!-- PROGRESS BAR -->
+    <div class="mb-12 relative">
+      <div class="flex justify-between items-center relative z-10">
+        <div class="flex flex-col items-center gap-2.5 cursor-pointer step-indicator"
+             data-step="0">
+          <div class="step-dot w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 bg-primary text-primary-foreground shadow-[0_0_20px_rgba(var(--brand-primary),0.35)]"
+               data-active-class="bg-primary text-primary-foreground shadow-[0_0_20px_rgba(var(--brand-primary),0.35)]"
+               data-idle-class="bg-card text-muted-foreground border border-border">1</div>
+          <span class="step-label text-[10px] font-bold uppercase tracking-[0.2em] text-primary transition-colors duration-300">Location</span>
+        </div>
+        <div class="flex flex-col items-center gap-2.5 cursor-pointer step-indicator"
+             data-step="1">
+          <div class="step-dot w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 bg-card text-muted-foreground border border-border">
+            2
+          </div>
+          <span class="step-label text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground transition-colors duration-300">Details</span>
+        </div>
+        <div class="flex flex-col items-center gap-2.5 cursor-pointer step-indicator"
+             data-step="2">
+          <div class="step-dot w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 bg-card text-muted-foreground border border-border">
+            3
+          </div>
+          <span class="step-label text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground transition-colors duration-300">Photos</span>
+        </div>
+      </div>
+      <!-- Progress line -->
+      <div class="absolute top-5 left-0 w-full h-px bg-border z-0">
+        <div id="progress-fill"
+             class="h-full w-[0%] bg-primary transition-all duration-500 ease-out shadow-[0_0_10px_rgba(var(--brand-primary),0.3)]">
+        </div>
+      </div>
+    </div>
+    <!-- MESSAGES -->
+    {% if messages %}
+      <div class="mb-6 space-y-2">
+        {% for message in messages %}
+          <div class="px-5 py-3 rounded-2xl border text-sm font-medium {% if message.tags == 'error' %}bg-danger/10 border-danger/30 text-danger {% else %}bg-primary/10 border-primary/30 text-primary{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+    <form method="post" enctype="multipart/form-data" id="spot-wizard-form">
+      {% csrf_token %}
+      <!-- STEP 1 — LOCATION -->
+      <div class="wizard-step active visible" data-step="0">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 2xl:gap-8">
+          <div>
+            <div class="mb-8">
+              <h1 class="text-3xl font-bold text-foreground mb-2">Pin Your Location</h1>
+              <p class="text-muted-foreground text-sm">Click on the map to set the exact location of your parking spot.</p>
+            </div>
+            <!-- Address -->
+            <div class="flex flex-col gap-2 mb-6">
+              <label class="block text-xs text-muted-foreground font-semibold uppercase tracking-widest"
+                     for="id_address">Street Address</label>
+              {{ form.address }}
+              {% if form.address.errors %}<p class="text-xs text-danger font-medium mt-1">{{ form.address.errors.0 }}</p>{% endif %}
+            </div>
+          </div>
+          <div>
+            <!-- Map -->
+            <div class="mb-4">
+              <!-- Search Box -->
+              <div class="relative mb-4 z-100">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group">
+                  <svg xmlns="http://www.w3.org/2000/svg"
+                       width="18"
+                       height="18"
+                       viewBox="0 0 24 24"
+                       fill="none"
+                       stroke="currentColor"
+                       stroke-width="2"
+                       stroke-linecap="round"
+                       stroke-linejoin="round"
+                       class="transition-colors group-focus-within:text-primary">
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="m21 21-4.3-4.3" />
+                  </svg>
+                </div>
+                <input type="text"
+                       id="map-search"
+                       placeholder="Search for an area or landmark..."
+                       class="w-full py-3 px-10 text-sm rounded-full bg-card border border-border-2 focus:border-brand-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-muted-foreground">
+                <div id="search-results"
+                     class="absolute top-full left-0 w-full mt-2 bg-card border border-border rounded-2xl shadow-xl overflow-hidden z-1100 hidden">
+                  <!-- Results populated by JS -->
+                </div>
+              </div>
+              <div class="relative w-full h-80 sm:h-96 rounded-2xl overflow-hidden border border-border bg-card z-0"
+                   id="map"></div>
+              <div class="flex justify-between items-center mt-3">
+                <p id="coords-display" class="text-xs text-muted-foreground font-medium">No pin placed yet</p>
+                <button type="button"
+                        id="locate-btn"
+                        class="btn btn-outline text-xs py-2 px-4 gap-1.5">
+                  <svg xmlns="http://www.w3.org/2000/svg"
+                       width="14"
+                       height="14"
+                       viewBox="0 0 24 24"
+                       fill="none"
+                       stroke="currentColor"
+                       stroke-width="2"
+                       stroke-linecap="round"
+                       stroke-linejoin="round">
+                    <polygon points="3 11 22 2 13 21 11 13 3 11" />
+                  </svg>
+                  Use My Location
+                </button>
+              </div>
+            </div>
+            <!-- Hidden lat/lng Django fields -->
+            <div class="hidden">{{ form.latitude }}{{ form.longitude }}</div>
+            {% if form.latitude.errors %}<p class="text-xs text-danger font-medium">{{ form.latitude.errors.0 }}</p>{% endif %}
+            <!-- Next -->
+            <div class="flex justify-end mt-8">
+              <button type="button" class="btn btn-primary next-step-btn" data-next="1">
+                Next: Spot Details
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     width="16"
+                     height="16"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="2.5"
+                     stroke-linecap="round"
+                     stroke-linejoin="round">
+                  <path d="M5 12h14" />
+                  <path d="m12 5 7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!--STEP 2 — DETAILS-->
+      <div class="wizard-step w-full md:w-[80%] lg:w-[70%] mx-auto"
+           data-step="1">
+        <div class="mb-8">
+          <h1 class="text-3xl font-bold text-foreground mb-2">Spot Details</h1>
+          <p class="text-muted-foreground text-sm">Tell drivers about your parking spot. Good details get more bookings.</p>
+        </div>
+        {% if form.non_field_errors %}
+          <div class="mb-6 px-5 py-3 rounded-2xl bg-danger/10 border border-danger/30 text-sm text-danger font-medium">
+            {{ form.non_field_errors }}
+          </div>
+        {% endif %}
+        <div class="flex flex-col gap-5">
+          <!-- Title -->
+          <div class="flex flex-col gap-2">
+            <label class="block text-xs text-muted-foreground font-semibold uppercase tracking-widest"
+                   for="id_title">Spot Title</label>
+            {{ form.title }}
+            {% if form.title.errors %}<p class="text-xs text-danger mt-1">{{ form.title.errors.0 }}</p>{% endif %}
+          </div>
+          <!-- Description -->
+          <div class="flex flex-col gap-2">
+            <label class="block text-xs text-muted-foreground font-semibold uppercase tracking-widest"
+                   for="id_description">Description</label>
+            {{ form.description }}
+            {% if form.description.errors %}<p class="text-xs text-danger mt-1">{{ form.description.errors.0 }}</p>{% endif %}
+          </div>
+          <!-- Rate & Vehicle Size on same row -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div class="flex flex-col gap-2">
+              <label class="block text-xs text-muted-foreground font-semibold uppercase tracking-widest"
+                     for="id_base_rate_per_hour">Rate (₹/hour)</label>
+              {{ form.base_rate_per_hour }}
+              {% if form.base_rate_per_hour.errors %}
+                <p class="text-xs text-danger mt-1">{{ form.base_rate_per_hour.errors.0 }}</p>
+              {% endif %}
+            </div>
+            <div class="flex flex-col gap-2">
+              <label class="block text-xs text-muted-foreground font-semibold uppercase tracking-widest"
+                     for="id_vehicle_size">Max Vehicle Size</label>
+              <select name="vehicle_size"
+                      id="id_vehicle_size"
+                      class="w-full py-3 px-6 text-sm rounded-full bg-card border border-border-2 focus:border-brand-primary focus:ring-1 focus:ring-primary outline-none transition-all text-foreground">
+                {% for value, label in form.vehicle_size.field.choices %}
+                  <option value="{{ value }}"
+                          {% if form.vehicle_size.value == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+              {% if form.vehicle_size.errors %}<p class="text-xs text-danger mt-1">{{ form.vehicle_size.errors.0 }}</p>{% endif %}
+            </div>
+          </div>
+          <!-- Amenities Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Covered -->
+            <label class="flex items-center gap-3 py-3 px-5 rounded-full bg-card border border-border cursor-pointer hover:border-brand-primary/30 transition-all group">
+              <input type="checkbox"
+                     name="is_covered"
+                     id="id_is_covered"
+                     {% if form.is_covered.value %}checked{% endif %}
+                     class="w-5! h-5! rounded-md! p-0! accent-brand-primary cursor-pointer">
+              <div>
+                <span class="text-sm font-medium text-foreground group-hover:text-brand-primary transition-colors">Covered Parking</span>
+                <p class="text-[10px] text-muted-foreground mt-0.5">Protected from rain/sun</p>
+              </div>
+            </label>
+            <!-- Guard -->
+            <label class="flex items-center gap-3 py-3 px-5 rounded-full bg-card border border-border cursor-pointer hover:border-brand-primary/30 transition-all group">
+              <input type="checkbox"
+                     name="has_guard"
+                     id="id_has_guard"
+                     {% if form.has_guard.value %}checked{% endif %}
+                     class="w-5! h-5! rounded-md! p-0! accent-brand-primary cursor-pointer">
+              <div>
+                <span class="text-sm font-medium text-foreground group-hover:text-brand-primary transition-colors">Security Guard</span>
+                <p class="text-[10px] text-muted-foreground mt-0.5">Physical guard present</p>
+              </div>
+            </label>
+            <!-- CCTV -->
+            <label class="flex items-center gap-3 py-3 px-5 rounded-full bg-card border border-border cursor-pointer hover:border-brand-primary/30 transition-all group">
+              <input type="checkbox"
+                     name="has_cctv"
+                     id="id_has_cctv"
+                     {% if form.has_cctv.value %}checked{% endif %}
+                     class="w-5! h-5! rounded-md! p-0! accent-brand-primary cursor-pointer">
+              <div>
+                <span class="text-sm font-medium text-foreground group-hover:text-brand-primary transition-colors">CCTV Camera</span>
+                <p class="text-[10px] text-muted-foreground mt-0.5">24/7 video monitoring</p>
+              </div>
+            </label>
+            <!-- EV Charging -->
+            <label class="flex items-center gap-3 py-3 px-5 rounded-full bg-card border border-border cursor-pointer hover:border-brand-primary/30 transition-all group">
+              <input type="checkbox"
+                     name="has_ev_charging"
+                     id="id_has_ev_charging"
+                     {% if form.has_ev_charging.value %}checked{% endif %}
+                     class="w-5! h-5! rounded-md! p-0! accent-brand-primary cursor-pointer">
+              <div>
+                <span class="text-sm font-medium text-foreground group-hover:text-brand-primary transition-colors">EV Charging</span>
+                <p class="text-[10px] text-muted-foreground mt-0.5">Charging point available</p>
+              </div>
+            </label>
+          </div>
+          <!-- Instructions -->
+          <div class="flex flex-col gap-2">
+            <label class="block text-xs text-muted-foreground font-semibold uppercase tracking-widest"
+                   for="id_instructions">Access Instructions</label>
+            {{ form.instructions }}
+            {% if form.instructions.errors %}<p class="text-xs text-danger mt-1">{{ form.instructions.errors.0 }}</p>{% endif %}
+          </div>
+        </div>
+        <!-- Back / Next -->
+        <div class="flex justify-between items-center mt-8">
+          <button type="button" class="btn btn-outline prev-step-btn" data-prev="0">
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 width="16"
+                 height="16"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2.5"
+                 stroke-linecap="round"
+                 stroke-linejoin="round">
+              <path d="m15 18-6-6 6-6" />
+            </svg>
+            Back
+          </button>
+          <button type="button" class="btn btn-primary next-step-btn" data-next="2">
+            Next: Photos
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 width="16"
+                 height="16"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2.5"
+                 stroke-linecap="round"
+                 stroke-linejoin="round">
+              <path d="M5 12h14" />
+              <path d="m12 5 7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      <!-- STEP 3 — PHOTOS -->
+      <div class="wizard-step" data-step="2">
+        <div class="mb-8">
+          <h1 class="text-3xl font-bold text-foreground mb-2">Add Photos</h1>
+          <p class="text-muted-foreground text-sm">
+            Upload at least 2 photos of your spot. More photos help drivers book with confidence.
+          </p>
+        </div>
+        {{ image_formset.management_form }}
+        {% if image_formset.non_form_errors %}
+          <div class="mb-6 px-5 py-3 rounded-2xl bg-danger/10 border border-danger/30 text-sm text-danger font-medium">
+            {% for error in image_formset.non_form_errors %}<p>{{ error }}</p>{% endfor %}
+          </div>
+        {% endif %}
+        <!-- Dynamic photo grid -->
+        <div id="photo-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4">
+          {% for img_form in image_formset %}
+            <div class="photo-slot aspect-square rounded-2xl border-2 border-dashed border-border bg-card flex items-center justify-center cursor-pointer hover:border-primary/40 transition-all duration-300 group {% if img_form.instance.image %}has-image{% endif %}"
+                 data-index="{{ forloop.counter0 }}">
+              {% if img_form.instance.image %}
+                <img src="{{ img_form.instance.image.url }}"
+                     class="preview-img"
+                     alt="Spot photo">
+              {% endif %}
+              <!-- Remove button -->
+              <button type="button" class="remove-preview" title="Remove photo">✕</button>
+              <!-- Placeholder UI (shown when no image) -->
+              <div class="placeholder-ui flex flex-col items-center gap-2 p-4 text-center">
+                <div class="w-12 h-12 rounded-xl bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                  <svg xmlns="http://www.w3.org/2000/svg"
+                       width="22"
+                       height="22"
+                       viewBox="0 0 24 24"
+                       fill="none"
+                       stroke="currentColor"
+                       stroke-width="1.5"
+                       class="text-muted-foreground group-hover:text-primary transition-colors">
+                    <rect width="18" height="18" x="3" y="3" rx="2" ry="2" /><circle cx="9" cy="9" r="2" />
+                    <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+                  </svg>
+                </div>
+                <span class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground-2">
+                  {% if forloop.counter <= 2 %}
+                    Required
+                  {% else %}
+                    Optional
+                  {% endif %}
+                </span>
+              </div>
+              <!-- Hidden file input + formset fields -->
+              <div class="hidden">
+                {{ img_form.image }}
+                {{ img_form.id }}
+                {{ img_form.DELETE }}
+                {{ img_form.is_primary }}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+        <!-- Add more photos button -->
+        <button type="button"
+                id="add-more-photos"
+                class="w-full btn btn-outline py-3 border-dashed border-border hover:border-primary/40 gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg"
+               width="16"
+               height="16"
+               viewBox="0 0 24 24"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="2"
+               stroke-linecap="round"
+               stroke-linejoin="round">
+            <path d="M12 5v14" />
+            <path d="M5 12h14" />
+          </svg>
+          Add More Photos
+        </button>
+        <p class="text-xs text-muted-foreground-2 mt-3 text-center">
+          Minimum 2 photos required · Click a card to browse or drag and drop
+        </p>
+        <!-- Back / Submit -->
+        <div class="flex justify-between items-center mt-8">
+          <button type="button" class="btn btn-outline prev-step-btn" data-prev="1">
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 width="16"
+                 height="16"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2.5"
+                 stroke-linecap="round"
+                 stroke-linejoin="round">
+              <path d="m15 18-6-6 6-6" />
+            </svg>
+            Back
+          </button>
+          <button type="submit" class="btn btn-primary">
+            {% if is_edit %}
+              Save Changes
+            {% else %}
+              Create Spot & Set Hours
+            {% endif %}
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 width="16"
+                 height="16"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2.5"
+                 stroke-linecap="round"
+                 stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+{% endblock content %}
+{% block scripts %}
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="{% static 'js/sport-form.js' %}"></script>
+{% endblock scripts %}

@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "core",
     "users",
+    "hosts",
+    "driver",
 ]
 
 MIDDLEWARE = [
@@ -53,6 +55,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "core.middleware.RoleSwitcherMiddleware",
 ]
 
 ROOT_URLCONF = "spotshare.urls"
@@ -88,11 +91,11 @@ WSGI_APPLICATION = "spotshare.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("DATABASE"),  # The database name you created
-        "USER": os.getenv("USER"),  # The username you created
-        "PASSWORD": os.getenv("PASSWORD"),  # The password you set
-        "HOST": os.getenv("HOST"),  # 'localhost' works fine within WSL
-        "PORT": os.getenv("PORT"),  # Default PostgreSQL port
+        "NAME": os.getenv("DATABASE"),
+        "USER": os.getenv("USER"),
+        "PASSWORD": os.getenv("PASSWORD"),
+        "HOST": os.getenv("HOST"),
+        "PORT": os.getenv("PORT"),
     }
 }
 
@@ -172,3 +175,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = "static/"
+
+# Media files (user-uploaded images)
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
+# Default primary key field type
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

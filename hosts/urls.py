@@ -1,0 +1,14 @@
+from django.urls import path
+from . import views
+
+app_name = "hosts"
+
+urlpatterns = [
+    path("", views.dashboard, name="dashboard"),
+    path("spots/new/", views.create_spot, name="create_spot"),
+    path("spots/<int:pk>/", views.spot_detail, name="spot_detail"),
+    path("spots/<int:pk>/edit/", views.edit_spot, name="edit_spot"),
+    path("spots/<int:pk>/hours/", views.manage_availability, name="manage_availability"),
+    path("spots/<int:pk>/toggle/", views.toggle_spot_status, name="toggle_status"),
+    path("spots/<int:pk>/delete/", views.delete_spot, name="delete_spot"),
+]
