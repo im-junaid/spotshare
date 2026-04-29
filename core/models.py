@@ -1,6 +1,10 @@
+import random
+import string
+
 from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 
 class ParkingSpot(models.Model):
@@ -127,6 +131,7 @@ class Booking(models.Model):
         ("active", "Active"),
         ("completed", "Completed"),
         ("cancelled", "Cancelled"),
+        ("no_show", "No Show"),
     ]
 
     spot = models.ForeignKey(
@@ -142,6 +147,15 @@ class Booking(models.Model):
     final_price = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
 
+    # OTP verification
+    otp = models.CharField(max_length=6, blank=True)
+    otp_verified_at = models.DateTimeField(null=True, blank=True)
+    cancelled_reason = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text="no_show, driver_cancelled, host_cancelled",
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -150,3 +164,41 @@ class Booking(models.Model):
 
     def __str__(self):
         return f"Booking #{self.pk} — {self.spot.title}"
+
+    def save(self, *args, **kwargs):
+        # Auto-generate a 6-digit OTP on first save
+        if not self.otp:
+            self.otp = "".join(random.choices(string.digits, k=6))
+        super().save(*args, **kwargs)
+
+    # --- Helper properties ---
+
+    @property
+    def is_otp_revealable(self):
+        """Driver can only see OTP during the booking time window."""
+        now = timezone.now()
+        return (
+            self.status == "confirmed"
+            and self.start_datetime <= now <= self.end_datetime
+        )
+
+    @property
+    def is_past_grace_period(self):
+        """True if 5+ minutes past start time and OTP hasn't been verified."""
+        from datetime import timedelta
+
+        now = timezone.now()
+        grace_end = self.start_datetime + timedelta(minutes=5)
+        return (
+            self.status == "confirmed"
+            and now > grace_end
+            and self.otp_verified_at is None
+        )
+
+    @property
+    def google_maps_url(self):
+        """Google Maps navigation URL for the spot."""
+        lat = self.spot.latitude
+        lng = self.spot.longitude
+        return f"https://www.google.com/maps/dir/?api=1&destination={lat},{lng}"
+

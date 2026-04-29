@@ -22,6 +22,11 @@ class ParkingSpotAdmin(admin.ModelAdmin):
 
 @admin.register(Booking)
 class BookingAdmin(admin.ModelAdmin):
-    list_display = ["id", "spot", "driver", "status", "final_price", "start_datetime", "end_datetime"]
+    list_display = [
+        "id", "spot", "driver", "status", "otp",
+        "otp_verified_at", "final_price", "start_datetime", "end_datetime",
+    ]
     list_filter = ["status"]
-    search_fields = ["spot__title", "driver__email"]
+    search_fields = ["spot__title", "driver__email", "otp"]
+    readonly_fields = ["otp"]
+

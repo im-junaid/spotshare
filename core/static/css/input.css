@@ -240,16 +240,17 @@
   /* Scrollbar */
   ::-webkit-scrollbar {
     width: 6px;
+    height: 8px;
   }
   ::-webkit-scrollbar-track {
-    background: var(--color-dark);
+    background: rgb(var(--background));
   }
   ::-webkit-scrollbar-thumb {
-    background: var(--color-white-12);
+    background: rgb(var(--card-foreground) / 0.3);
     border-radius: var(--radius-full);
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: var(--color-white-40);
+    background: rgb(var(--primary));
   }
 }
 

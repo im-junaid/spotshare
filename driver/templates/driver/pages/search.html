@@ -1,0 +1,511 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% block title %}
+  Find Parking — SpotShare
+{% endblock title %}
+{% block head %}
+  <link rel="stylesheet" href="{% static 'lib/leaflet/leaflet.css' %}">
+  <style>
+      /*  MAP  */
+      #spot-map {
+          height: 350px;
+          border-radius: 1rem;
+          border: 1px solid rgb(var(--border));
+          z-index: 1;
+      }
+
+      @media (min-width: 768px) {
+          #spot-map {
+              height: calc(100vh - 180px);
+              position: sticky;
+              top: 120px;
+          }
+      }
+
+      /*  GLASS SEARCH BAR  */
+      .search-glass {
+          background: rgb(var(--card) / 0.65);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid rgb(var(--border));
+          border-radius: var(--radius-2xl);
+          box-shadow: 0 8px 32px rgb(0 0 0 / 0.25);
+      }
+
+      /*  FILTER CHIPS  */
+      .chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.35rem;
+          padding: 0.4rem 0.85rem;
+          border-radius: var(--radius-full);
+          font-size: 0.8rem;
+          font-weight: 500;
+          border: 1px solid rgb(var(--border));
+          background: rgb(var(--muted));
+          color: rgb(var(--foreground) / 0.7);
+          cursor: pointer;
+          transition: all 0.2s ease;
+          white-space: nowrap;
+          user-select: none;
+      }
+
+      .chip:hover {
+          border-color: rgb(var(--brand-primary) / 0.4);
+          color: rgb(var(--foreground));
+      }
+
+      .chip.active {
+          background: rgb(var(--brand-primary) / 0.15);
+          border-color: rgb(var(--brand-primary) / 0.5);
+          color: rgb(var(--brand-primary));
+      }
+
+      /*  SPOT CARD (horizontal)  */
+      .spot-card {
+          display: flex;
+          flex-direction: row;
+          background: rgb(var(--card));
+          border: 1px solid rgb(var(--border));
+          border-radius: var(--radius-2xl);
+          overflow: hidden;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          cursor: pointer;
+      }
+
+      .spot-card:hover {
+          border-color: rgb(var(--brand-primary) / 0.3);
+          transform: translateY(-2px);
+          box-shadow: 0 8px 24px rgb(0 0 0 / 0.2), 0 0 0 1px rgb(var(--brand-primary) / 0.1);
+      }
+
+      .spot-card-img {
+          width: 140px;
+          min-height: 130px;
+          object-fit: cover;
+          background: rgb(var(--muted));
+          flex-shrink: 0;
+          border-radius: var(--radius-2xl) 0 0 var(--radius-2xl);
+      }
+
+      @media (min-width: 640px) {
+          .spot-card-img {
+              width: 170px;
+              min-height: 150px;
+          }
+      }
+
+      /*  BADGE  */
+      .badge-amenity {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.25rem;
+          padding: 0.2rem 0.55rem;
+          border-radius: var(--radius-full);
+          font-size: 0.65rem;
+          font-weight: 500;
+          background: rgb(var(--muted));
+          color: rgb(var(--foreground) / 0.6);
+      }
+
+      /*  SELECT & BOOK BTN  */
+      .btn-book {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 100%;
+          padding: 0.5rem;
+          border-radius: var(--radius-xl);
+          font-size: 0.8rem;
+          font-weight: 600;
+          border: 1px solid rgb(var(--border));
+          background: rgb(var(--muted));
+          color: rgb(var(--foreground) / 0.8);
+          transition: all 0.2s ease;
+          cursor: pointer;
+      }
+
+      .btn-book:hover {
+          background: rgb(var(--brand-primary) / 0.1);
+          border-color: rgb(var(--brand-primary) / 0.4);
+          color: rgb(var(--brand-primary));
+      }
+
+      /*  PULSE DOT  */
+      .pulse-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: rgb(var(--brand-primary));
+          box-shadow: 0 0 0 0 rgb(var(--brand-primary) / 0.4);
+          animation: pulse-ring 2s infinite;
+      }
+
+      @keyframes pulse-ring {
+          0% {
+              box-shadow: 0 0 0 0 rgb(var(--brand-primary) / 0.4);
+          }
+
+          70% {
+              box-shadow: 0 0 0 10px transparent;
+          }
+
+          100% {
+              box-shadow: 0 0 0 0 transparent;
+          }
+      }
+
+      /*  SKELETON  */
+      .skeleton {
+          background: linear-gradient(90deg, rgb(var(--muted)) 25%, rgb(var(--muted-2)) 50%, rgb(var(--muted)) 75%);
+          background-size: 200% 100%;
+          animation: skeleton-shimmer 1.5s infinite;
+          border-radius: 0.5rem;
+      }
+
+      @keyframes skeleton-shimmer {
+          0% {
+              background-position: 200% 0;
+          }
+
+          100% {
+              background-position: -200% 0;
+          }
+      }
+
+      /*  UPDATED NOW BADGE  */
+      .updated-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.35rem;
+          padding: 0.3rem 0.75rem;
+          border-radius: var(--radius-full);
+          font-size: 0.7rem;
+          font-weight: 500;
+          border: 1px solid rgb(var(--brand-primary) / 0.3);
+          color: rgb(var(--brand-primary));
+          background: rgb(var(--brand-primary) / 0.08);
+      }
+
+      /* Leaflet overrides */
+      .custom-marker {
+          background: rgb(var(--brand-primary));
+          border: 3px solid rgb(var(--background));
+          border-radius: 50%;
+          box-shadow: 0 2px 8px rgb(0 0 0 / 0.3);
+      }
+
+      .user-marker {
+          background: #3b82f6;
+          border: 3px solid white;
+          border-radius: 50%;
+          box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.3), 0 2px 8px rgb(0 0 0 / 0.3);
+          animation: pulse-ring 2s infinite;
+      }
+
+      .leaflet-popup-content-wrapper {
+          background: rgb(var(--card)) !important;
+          color: rgb(var(--foreground)) !important;
+          border-radius: var(--radius-xl) !important;
+          border: 1px solid rgb(var(--border)) !important;
+          box-shadow: 0 8px 24px rgb(0 0 0 / 0.3) !important;
+      }
+
+      .leaflet-popup-tip {
+          background: rgb(var(--card)) !important;
+          border: 1px solid rgb(var(--border)) !important;
+      }
+
+      .leaflet-popup-close-button {
+          color: rgb(var(--foreground) / 0.5) !important;
+      }
+
+      select#vehicle-filter {
+          appearance: none;
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23a3e635' stroke-width='2'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+          background-repeat: no-repeat;
+          background-position: right 0.75rem center;
+          padding-right: 2.5rem;
+      }
+
+      /* Scrollable spot list */
+      .spots-list-scroll {
+          max-height: calc(100vh - 180px);
+          overflow-y: auto;
+          scrollbar-width: thin;
+          scrollbar-color: rgb(var(--brand-primary) / 0.3) transparent;
+      }
+
+      @media (max-width: 767px) {
+          .spots-list-scroll {
+              max-height: none;
+              overflow-y: visible;
+          }
+      }
+  </style>
+{% endblock head %}
+{% block content %}
+  <section class="pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
+    <!--  HEADER  -->
+    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-5 animate-on-scroll">
+      <div>
+        <h1 class="text-2xl sm:text-3xl font-display font-bold text-foreground">
+          Find Parking <span class="text-brand-primary">Near You</span>
+        </h1>
+        <p class="text-muted-foreground text-sm mt-1">Real-time available spots around your location</p>
+      </div>
+      <div id="location-status"
+           class="flex items-center gap-2 text-sm text-muted-foreground">
+        <div class="pulse-dot"></div>
+        <span id="location-text">Detecting location…</span>
+      </div>
+    </div>
+    <!--  SEARCH + FILTERS  -->
+    <div class="search-glass p-4 mb-6 animate-on-scroll delay-100">
+      <div class="flex flex-col md:flex-row gap-3">
+        <div class="relative flex-1">
+          <svg class="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
+               xmlns="http://www.w3.org/2000/svg"
+               width="18"
+               height="18"
+               viewBox="0 0 24 24"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="2"
+               stroke-linecap="round"
+               stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.3-4.3" />
+          </svg>
+          <input id="search-input"
+                 type="text"
+                 placeholder="Search by name or address…"
+                 class="pl-11! bg-surface border-border w-full rounded-xl">
+        </div>
+        
+        <div class="flex gap-2">
+          <input type="datetime-local" id="filter-start" title="Start Time" class="py-3 px-4 text-sm rounded-xl bg-surface border border-border focus:border-brand-primary outline-none text-foreground flex-1">
+          <input type="datetime-local" id="filter-end" title="End Time" class="py-3 px-4 text-sm rounded-xl bg-surface border border-border focus:border-brand-primary outline-none text-foreground flex-1">
+        </div>
+
+        <select id="vehicle-filter"
+                class="py-3 px-5 text-sm rounded-xl bg-surface border border-border focus:border-brand-primary focus:ring-1 focus:ring-primary outline-none transition-all text-foreground">
+          <option value="">All Vehicles</option>
+          <option value="motorcycle">🏍️ Motorcycle</option>
+          <option value="hatchback">🚗 Hatchback</option>
+          <option value="sedan">🚙 Sedan</option>
+          <option value="suv">🚐 SUV</option>
+          <option value="large">🚛 Oversized</option>
+        </select>
+        <button id="search-btn" class="btn btn-primary gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg"
+               width="16"
+               height="16"
+               viewBox="0 0 24 24"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="2"
+               stroke-linecap="round"
+               stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.3-4.3" />
+          </svg>
+          Search
+        </button>
+      </div>
+      <div class="flex flex-wrap gap-2 mt-3">
+        <button class="chip" data-filter="is_covered">
+          <svg xmlns="http://www.w3.org/2000/svg"
+               width="14"
+               height="14"
+               viewBox="0 0 24 24"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="2">
+            <path d="M3 21h18" />
+            <path d="M3 7v1a3 3 0 0 0 6 0V7" />
+            <path d="M15 7v1a3 3 0 0 0 6 0V7" />
+            <path d="M6 21V11" />
+            <path d="M18 21V11" />
+            <path d="M3 7h18" />
+          </svg>
+          Covered
+        </button>
+        <button class="chip" data-filter="has_cctv">
+          <svg xmlns="http://www.w3.org/2000/svg"
+               width="14"
+               height="14"
+               viewBox="0 0 24 24"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="2">
+            <path d="M16.75 12h3.632a1 1 0 0 1 .894 1.447l-2.034 4.069a1 1 0 0 1-1.708.134l-2.124-2.97" />
+            <path d="M17.106 9.053a1 1 0 0 1 .447 1.341l-3.106 6.211a1 1 0 0 1-1.342.447L3.61 12.3a2.92 2.92 0 0 1-1.3-3.91L3.69 5.6a2.92 2.92 0 0 1 3.92-1.3z" />
+          </svg>
+          CCTV
+        </button>
+        <button class="chip" data-filter="has_guard">
+          <svg xmlns="http://www.w3.org/2000/svg"
+               width="14"
+               height="14"
+               viewBox="0 0 24 24"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="2">
+            <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
+          </svg>
+          Guard
+        </button>
+        <button class="chip" data-filter="has_ev_charging">
+          <svg xmlns="http://www.w3.org/2000/svg"
+               width="14"
+               height="14"
+               viewBox="0 0 24 24"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="2">
+            <path d="M15 7h1a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2" />
+            <path d="M6 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h1" />
+            <path d="m11 7-3 5h4l-3 5" />
+            <line x1="22" x2="22" y1="11" y2="13" />
+          </svg>
+          EV Charging
+        </button>
+        <div class="ml-auto flex items-center gap-2">
+          <label for="radius-slider"
+                 class="text-xs text-muted-foreground whitespace-nowrap">Radius:</label>
+          <input id="radius-slider"
+                 type="range"
+                 min="1"
+                 max="25"
+                 value="5"
+                 step="1"
+                 class="w-20 h-1.5! rounded-full! p-0! border-none! accent-brand-primary bg-muted!">
+          <span id="radius-value"
+                class="text-xs text-brand-primary font-medium min-w-10">5 km</span>
+        </div>
+      </div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 animate-on-scroll delay-200">
+      <!-- LEFT: MAP -->
+      <div class="relative">
+        <div id="spot-map"></div>
+        <button id="recenter-btn"
+                class="absolute bottom-4 right-4 z-10 btn btn-outline bg-card/80 backdrop-blur-md p-2.5! rounded-xl!"
+                title="Re-center on my location">
+          <svg xmlns="http://www.w3.org/2000/svg"
+               width="18"
+               height="18"
+               viewBox="0 0 24 24"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="2"
+               stroke-linecap="round"
+               stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M12 2v4" />
+            <path d="M12 18v4" />
+            <path d="m4.93 4.93 2.83 2.83" />
+            <path d="m16.24 16.24 2.83 2.83" />
+            <path d="M2 12h4" />
+            <path d="M18 12h4" />
+            <path d="m4.93 19.07 2.83-2.83" />
+            <path d="m16.24 7.76 2.83-2.83" />
+          </svg>
+        </button>
+      </div>
+      <!-- RIGHT: SPOT LIST -->
+      <div>
+        <!-- List header -->
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-base font-display font-semibold text-foreground">
+            <span id="results-count" class="text-foreground"></span>
+          </h2>
+          <span class="updated-badge">
+            <div class="pulse-dot" style="width:6px;height:6px;"></div>
+            Updated Just Now
+          </span>
+        </div>
+        <div id="spots-grid" class="spots-list-scroll flex flex-col gap-4 pr-1">
+          <!-- Skeleton loaders -->
+          <div class="spot-card">
+            <div class="skeleton" style="width:170px;min-height:130px"></div>
+            <div class="p-4 flex-1 space-y-3">
+              <div class="skeleton h-5 w-3/4"></div>
+              <div class="skeleton h-4 w-full"></div>
+              <div class="skeleton h-8 w-full mt-2"></div>
+            </div>
+          </div>
+          <div class="spot-card">
+            <div class="skeleton" style="width:170px;min-height:130px"></div>
+            <div class="p-4 flex-1 space-y-3">
+              <div class="skeleton h-5 w-3/4"></div>
+              <div class="skeleton h-4 w-full"></div>
+              <div class="skeleton h-8 w-full mt-2"></div>
+            </div>
+          </div>
+        </div>
+        <!-- Empty state -->
+        <div id="empty-state" class="hidden text-center py-16">
+          <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 width="28"
+                 height="28"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="1.5"
+                 class="text-muted-foreground">
+              <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2" />
+              <circle cx="7" cy="17" r="2" />
+              <path d="M9 17h6" />
+              <circle cx="17" cy="17" r="2" />
+            </svg>
+          </div>
+          <h3 class="text-base font-display font-semibold text-foreground mb-1">No spots found</h3>
+          <p class="text-muted-foreground text-sm">Try adjusting your filters or increasing the search radius.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- SPOT CARD -->
+  <template id="spot-card-tpl">
+    <div class="spot-card" data-id="" data-lat="" data-lng="">
+      <img src="" alt="" class="spot-card-img" loading="lazy" data-field="image">
+      <div class="p-3.5 flex-1 flex flex-col justify-between min-w-0">
+        <div>
+          <div class="flex items-start justify-between gap-2">
+            <h3 class="font-display font-semibold text-foreground text-sm line-clamp-1"
+                data-field="title"></h3>
+            <span class="shrink-0 whitespace-nowrap">
+              <span class="text-brand-primary font-bold text-sm" data-field="rate"></span>
+              <span class="text-xs font-normal text-muted-foreground">/hr</span>
+            </span>
+          </div>
+          <div class="mt-1 hidden" data-field="distance-row">
+            <span class="flex items-center gap-1 text-xs text-muted-foreground">
+              <svg xmlns="http://www.w3.org/2000/svg"
+                   width="11"
+                   height="11"
+                   viewBox="0 0 24 24"
+                   fill="none"
+                   stroke="currentColor"
+                   stroke-width="2">
+                <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
+                <circle cx="12" cy="10" r="3" />
+              </svg>
+              <span data-field="distance"></span>
+            </span>
+          </div>
+          <div class="flex flex-wrap gap-1.5 mt-2" data-field="amenities"></div>
+        </div>
+        <a href="#" class="btn-book mt-3" data-field="book-btn">Select &amp; Book</a>
+      </div>
+    </div>
+  </template>
+{% endblock content %}
+{% block scripts %}
+  <script src="{% static 'lib/leaflet/leaflet.js' %}"></script>
+  <script src="{% static 'js/spotshare-map.js' %}"></script>
+  <script src="{% static 'js/driver-search.js' %}"></script>
+{% endblock scripts %}

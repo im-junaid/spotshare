@@ -102,6 +102,23 @@
     <script src="{% static 'js/base.js' %}"></script>
     <script src="{% static 'js/components/toast.js' %}"></script>
     <script src="{% static 'js/animate.js' %}"></script>
+    {% if messages %}
+      <script>
+        document.addEventListener("DOMContentLoaded", () => {
+          {% for message in messages %}
+            {% if message.tags == 'error' %}
+              SpotToast.error("{{ message|escapejs }}");
+            {% elif message.tags == 'warning' %}
+              SpotToast.warning("{{ message|escapejs }}");
+            {% elif message.tags == 'success' %}
+              SpotToast.success("{{ message|escapejs }}");
+            {% else %}
+              SpotToast.info("{{ message|escapejs }}");
+            {% endif %}
+          {% endfor %}
+        });
+      </script>
+    {% endif %}
     {% block scripts %}
     {% endblock scripts %}
   </body>

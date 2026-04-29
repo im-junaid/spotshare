@@ -1,0 +1,155 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% block title %}
+  Driver Dashboard — SpotShare
+{% endblock title %}
+{% block content %}
+  <div class="w-full py-8 px-4 sm:px-6 lg:px-10 mt-20">
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="text-3xl font-bold font-display text-foreground">My Parking</h1>
+        <p class="text-muted-foreground mt-1 text-sm">Manage your upcoming trips and active bookings</p>
+      </div>
+      <a href="{% url 'driver:search' %}" class="btn btn-primary gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg"
+             width="16"
+             height="16"
+             viewBox="0 0 24 24"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="2">
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.3-4.3" />
+        </svg>
+        Find Parking
+      </a>
+    </div>
+    <div class="space-y-12">
+      <!-- Active Parking Section -->
+      <section>
+        <h2 class="text-xl font-bold font-display text-foreground mb-4 flex items-center gap-2">
+          <span class="relative flex h-3 w-3">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-primary opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-3 w-3 bg-brand-primary"></span>
+          </span>
+          Current & Upcoming (Today)
+        </h2>
+        <div class="grid gap-4 sm:grid-cols-2">
+          {% for b in active_bookings %}
+            <div class="bg-card border border-brand-primary/30 p-5 rounded-2xl flex flex-col justify-between shadow-lg relative overflow-hidden">
+              <div class="absolute top-0 right-0 w-24 h-24 bg-brand-primary/5 rounded-bl-full pointer-events-none"></div>
+              <div>
+                <div class="flex justify-between items-start mb-2">
+                  <span class="px-2 py-1 {% if b.status == 'active' %}bg-green-500/10 text-green-500{% else %}bg-brand-primary/10 text-brand-primary{% endif %} rounded-md text-xs font-semibold uppercase tracking-wider">
+                    {{ b.get_status_display }}
+                  </span>
+                  <span class="text-lg font-bold text-foreground">₹{{ b.final_price }}</span>
+                </div>
+                <h3 class="text-xl font-bold text-foreground">{{ b.spot.title }}</h3>
+                <p class="text-sm text-muted-foreground mt-1 flex items-start gap-1">
+                  <svg xmlns="http://www.w3.org/2000/svg"
+                       width="14"
+                       height="14"
+                       viewBox="0 0 24 24"
+                       fill="none"
+                       stroke="currentColor"
+                       stroke-width="2"
+                       class="mt-0.5 shrink-0">
+                    <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
+                  {{ b.spot.address }}
+                </p>
+                <p class="font-medium text-foreground mt-3">{{ b.start_datetime|date:"g:i A" }} – {{ b.end_datetime|date:"g:i A" }}</p>
+              </div>
+              <div class="mt-5 pt-4 border-t border-border flex gap-3">
+                <a href="{% url 'driver:booking_detail' pk=b.pk %}"
+                   class="btn btn-primary flex-1">View Parking Pass</a>
+                <a href="{{ b.google_maps_url }}"
+                   target="_blank"
+                   class="btn border border-border bg-surface text-foreground hover:bg-muted shrink-0 px-3">
+                  <svg xmlns="http://www.w3.org/2000/svg"
+                       width="20"
+                       height="20"
+                       viewBox="0 0 24 24"
+                       fill="none"
+                       stroke="currentColor"
+                       stroke-width="2"
+                       stroke-linecap="round"
+                       stroke-linejoin="round">
+                    <path d="m22 2-7 20-4-9-9-4Z" />
+                    <path d="M22 2 11 13" />
+                  </svg>
+                </a>
+              </div>
+            </div>
+          {% empty %}
+            <div class="col-span-full py-8 text-center bg-muted/30 rounded-2xl border border-dashed border-border">
+              <p class="text-muted-foreground">You don't have any parking booked for right now.</p>
+            </div>
+          {% endfor %}
+        </div>
+      </section>
+      <!-- Upcoming Future Bookings -->
+      <section>
+        <h2 class="text-xl font-bold font-display text-foreground mb-4">Later Bookings</h2>
+        <div class="bg-card border border-border rounded-2xl overflow-hidden">
+          <ul class="divide-y divide-border">
+            {% for b in upcoming_bookings %}
+              <li class="p-4 hover:bg-muted/30 transition flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h4 class="font-semibold text-foreground text-lg">{{ b.spot.title }}</h4>
+                  <p class="text-sm text-brand-primary font-medium mt-1">
+                    {{ b.start_datetime|date:"l, M d" }} · {{ b.start_datetime|date:"g:i A" }} – {{ b.end_datetime|date:"g:i A" }}
+                  </p>
+                </div>
+                <div class="flex items-center gap-4 sm:text-right">
+                  <div>
+                    <p class="text-lg font-bold text-foreground">₹{{ b.final_price }}</p>
+                    <span class="text-xs text-muted-foreground uppercase font-semibold">Confirmed</span>
+                  </div>
+                  <div class="flex flex-col gap-2">
+                    <a href="{% url 'driver:booking_detail' pk=b.pk %}"
+                       class="btn bg-muted px-4 py-1.5 text-sm hover:bg-brand-primary hover:text-black">Details</a>
+                  </div>
+                </div>
+              </li>
+            {% empty %}
+              <li class="p-8 text-center text-muted-foreground">No future bookings scheduled.</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </section>
+      <!-- Past Bookings -->
+      <section>
+        <h2 class="text-xl font-bold font-display text-foreground mb-4">History</h2>
+        <div class="bg-card border border-border rounded-2xl overflow-hidden">
+          <ul class="divide-y divide-border">
+            {% for b in past_bookings %}
+              <li class="p-4 flex items-center justify-between opacity-75">
+                <div>
+                  <h4 class="font-medium text-foreground">{{ b.spot.title }}</h4>
+                  <p class="text-xs text-muted-foreground mt-1">{{ b.start_datetime|date:"M d, Y" }}</p>
+                </div>
+                <div class="text-right">
+                  <p class="text-sm font-semibold text-foreground">₹{{ b.final_price }}</p>
+                  {% if b.status == 'completed' %}
+                    <span class="text-xs text-green-500 font-semibold">Completed</span>
+                  {% elif b.status == 'no_show' %}
+                    <span class="text-xs text-red-500 font-semibold">No Show</span>
+                  {% elif b.status == 'cancelled' %}
+                    <span class="text-xs text-muted-foreground font-semibold">Cancelled</span>
+                  {% else %}
+                    <span class="text-xs text-muted-foreground capitalize">{{ b.status }}</span>
+                  {% endif %}
+                </div>
+              </li>
+            {% empty %}
+              <li class="p-8 text-center text-muted-foreground">Your history is clean.</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </section>
+    </div>
+  </div>
+{% endblock content %}

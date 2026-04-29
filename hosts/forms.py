@@ -6,7 +6,6 @@ from core.models import ParkingSpot, SpotImage, Availability
 class ParkingSpotForm(forms.ModelForm):
     """Form for creating/editing a parking spot."""
 
-    # Hidden fields — populated by map JS on the frontend
     latitude = forms.DecimalField(
         max_digits=9,
         decimal_places=6,
@@ -67,16 +66,32 @@ SpotImageFormSet = inlineformset_factory(
     min_num=2,
     validate_min=True,
     max_num=8,
-    extra=2,
+    extra=0,
     can_delete=True,
 )
+
+
+class AvailabilityForm(forms.ModelForm):
+    day_of_week = forms.TypedChoiceField(
+        choices=[("", "Select Day")] + Availability.WEEKDAYS,
+        coerce=int,
+        required=False,
+    )
+
+    class Meta:
+        model = Availability
+        fields = ["day_of_week", "start_time", "end_time"]
+        widgets = {
+            "start_time": forms.TimeInput(attrs={"type": "time"}),
+            "end_time": forms.TimeInput(attrs={"type": "time"}),
+        }
 
 
 # Availability FormSet: add/edit/delete time blocks
 AvailabilityFormSet = inlineformset_factory(
     ParkingSpot,
     Availability,
-    fields=["day_of_week", "start_time", "end_time"],
-    extra=3,
+    form=AvailabilityForm,
+    extra=1,
     can_delete=True,
 )

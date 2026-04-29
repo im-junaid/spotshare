@@ -179,6 +179,16 @@ def manage_availability(request, pk):
     spot = get_object_or_404(ParkingSpot, pk=pk, owner=request.user)
 
     if request.method == "POST":
+        if "set_24_7" in request.POST:
+            from core.models import Availability
+            spot.availabilities.all().delete()
+            Availability.objects.bulk_create([
+                Availability(spot=spot, day_of_week=d, start_time="00:00", end_time="23:59")
+                for d in range(7)
+            ])
+            messages.success(request, "Spot is now available 24/7!")
+            return redirect("hosts:spot_detail", pk=spot.pk)
+
         formset = AvailabilityFormSet(request.POST, instance=spot)
         if formset.is_valid():
             formset.save()
@@ -236,3 +246,104 @@ def delete_spot(request, pk):
     spot.delete()
     messages.success(request, f'Spot "{title}" has been deleted.')
     return redirect("hosts:dashboard")
+
+
+@host_required
+def host_bookings(request):
+    """View all bookings for a host's spots, organized by status."""
+    now = timezone.now()
+    all_bookings = Booking.objects.filter(spot__owner=request.user).select_related("spot", "driver")
+
+    # Group bookings
+    upcoming = all_bookings.filter(status="confirmed", start_datetime__gt=now).order_by("start_datetime")
+    
+    # Active meaning currently parked (host verified OTP)
+    active = all_bookings.filter(status="active").order_by("-start_datetime")
+    
+    # Pending arrival (time has started, but host hasn't verified OTP yet)
+    # They stay here until grace period is over
+    pending_arrival = all_bookings.filter(
+        status="confirmed",
+        start_datetime__lte=now,
+    ).order_by("start_datetime")
+
+    past = all_bookings.filter(status__in=["completed", "cancelled", "no_show"]).order_by("-start_datetime")
+
+    context = {
+        "upcoming": upcoming,
+        "active": active,
+        "pending_arrival": pending_arrival,
+        "past": past,
+        "now": now,
+    }
+    return render(request, "hosts/pages/bookings.html", context)
+
+
+@host_required
+def host_booking_detail(request, pk):
+    """Detailed view for a specific booking."""
+    booking = get_object_or_404(Booking.objects.select_related("spot", "driver"), pk=pk, spot__owner=request.user)
+    
+    context = {
+        "booking": booking,
+        "now": timezone.now(),
+    }
+    return render(request, "hosts/pages/booking_detail.html", context)
+
+
+@host_required
+@require_POST
+def verify_otp(request, pk):
+    """Verify driver OTP and mark booking as active."""
+    booking = get_object_or_404(Booking, pk=pk, spot__owner=request.user)
+    
+    # Can only verify confirmed bookings
+    if booking.status != "confirmed":
+        messages.error(request, "This booking cannot be verified right now.")
+        return redirect("hosts:booking_detail", pk=booking.pk)
+        
+    submitted_otp = request.POST.get("otp", "").strip()
+    
+    if submitted_otp == booking.otp:
+        booking.status = "active"
+        booking.otp_verified_at = timezone.now()
+        booking.save(update_fields=["status", "otp_verified_at", "updated_at"])
+        messages.success(request, f"OTP verified successfully! Driver is now parked.")
+    else:
+        messages.error(request, "Invalid OTP. Please try again.")
+        
+    return redirect("hosts:booking_detail", pk=booking.pk)
+
+
+@host_required
+@require_POST
+def mark_no_show(request, pk):
+    """Mark a booking as no-show if driver didn't arrive within grace period."""
+    booking = get_object_or_404(Booking, pk=pk, spot__owner=request.user)
+    
+    if booking.is_past_grace_period:
+        booking.status = "no_show"
+        booking.cancelled_reason = "no_show"
+        booking.save(update_fields=["status", "cancelled_reason", "updated_at"])
+        messages.warning(request, "Booking marked as No-Show. The spot is free again.")
+    else:
+        messages.error(request, "Grace period hasn't ended yet or booking is already verified.")
+        
+    return redirect("hosts:bookings")
+
+
+@host_required
+@require_POST
+def complete_booking(request, pk):
+    """Mark an active booking as completed (driver left)."""
+    booking = get_object_or_404(Booking, pk=pk, spot__owner=request.user)
+    
+    if booking.status == "active":
+        booking.status = "completed"
+        booking.save(update_fields=["status", "updated_at"])
+        messages.success(request, f"Booking completed. You earned ₹{booking.final_price}.")
+    else:
+        messages.error(request, "Only active bookings can be marked as completed.")
+        
+    return redirect("hosts:bookings")
+

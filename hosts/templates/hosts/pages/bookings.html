@@ -1,0 +1,139 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% block title %}Bookings — Host Dashboard{% endblock title %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+  <div class="flex items-center justify-between mb-8">
+    <div>
+      <h1 class="text-3xl font-bold font-display text-foreground">Bookings</h1>
+      <p class="text-muted-foreground mt-1 text-sm">Manage arrivals and view past earnings</p>
+    </div>
+    <a href="{% url 'hosts:dashboard' %}" class="btn bg-muted text-foreground hover:bg-muted/80">
+      Back to Dashboard
+    </a>
+  </div>
+
+  <div class="space-y-12">
+    <!-- Active & Pending Arrivals Section -->
+    <section>
+      <h2 class="text-xl font-bold font-display text-foreground mb-4">Today's Parkers</h2>
+      <div class="grid gap-4 sm:grid-cols-2">
+        {% for b in active %}
+        <div class="bg-card border border-border p-5 rounded-2xl flex flex-col justify-between">
+          <div>
+            <div class="flex justify-between items-start mb-2">
+              <span class="px-2 py-1 bg-green-500/10 text-green-500 rounded-md text-xs font-semibold uppercase tracking-wider">Active</span>
+              <span class="text-lg font-bold text-brand-primary">₹{{ b.final_price }}</span>
+            </div>
+            <h3 class="font-bold text-foreground">{{ b.spot.title }}</h3>
+            <p class="text-sm text-muted-foreground">{{ b.driver.get_full_name|default:b.driver.email }}</p>
+            <p class="text-xs text-muted-foreground mt-2">
+              {{ b.start_datetime|date:"g:i A" }} – {{ b.end_datetime|date:"g:i A" }}
+            </p>
+          </div>
+          <div class="mt-4 pt-4 border-t border-border">
+            <form action="{% url 'hosts:complete_booking' pk=b.pk %}" method="POST">
+              {% csrf_token %}
+              <button class="btn btn-primary w-full py-2">Mark Completed</button>
+            </form>
+          </div>
+        </div>
+        {% endfor %}
+
+        {% for b in pending_arrival %}
+        <div class="bg-card border border-amber-500/30 p-5 rounded-2xl flex flex-col justify-between relative overflow-hidden">
+          <div class="absolute top-0 right-0 w-16 h-16 bg-amber-500/10 rounded-bl-full pointer-events-none"></div>
+          <div>
+            <div class="flex justify-between items-start mb-2">
+              <span class="px-2 py-1 bg-amber-500/10 text-amber-500 rounded-md text-xs font-semibold uppercase tracking-wider">Pending Arrival</span>
+              <span class="text-lg font-bold text-brand-primary">₹{{ b.final_price }}</span>
+            </div>
+            <h3 class="font-bold text-foreground">{{ b.spot.title }}</h3>
+            <p class="text-sm text-muted-foreground">{{ b.driver.get_full_name|default:b.driver.email }}</p>
+            <p class="text-xs text-muted-foreground mt-2">
+              {{ b.start_datetime|date:"g:i A" }} – {{ b.end_datetime|date:"g:i A" }}
+            </p>
+          </div>
+          <div class="mt-4 pt-4 border-t border-border space-y-2">
+            <a href="{% url 'hosts:booking_detail' pk=b.pk %}" class="btn bg-muted w-full py-2 hover:bg-muted/80">
+              Verify OTP
+            </a>
+            {% if b.is_past_grace_period %}
+            <form action="{% url 'hosts:mark_no_show' pk=b.pk %}" method="POST">
+              {% csrf_token %}
+              <button class="btn border border-red-500 text-red-500 hover:bg-red-500/10 w-full py-2">
+                Mark No-Show
+              </button>
+            </form>
+            {% else %}
+            <p class="text-[10px] text-center text-muted-foreground">Grace period active.</p>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+        
+        {% if not active and not pending_arrival %}
+          <div class="col-span-full py-8 text-center bg-muted/30 rounded-2xl border border-dashed border-border">
+            <p class="text-muted-foreground">No one is currently parked or arriving right now.</p>
+          </div>
+        {% endif %}
+      </div>
+    </section>
+
+    <!-- Upcoming Bookings -->
+    <section>
+      <h2 class="text-xl font-bold font-display text-foreground mb-4">Upcoming</h2>
+      <div class="bg-card border border-border rounded-2xl overflow-hidden">
+        <ul class="divide-y divide-border">
+          {% for b in upcoming %}
+          <li class="p-4 hover:bg-muted/30 transition flex items-center justify-between">
+            <div>
+              <h4 class="font-semibold text-foreground">{{ b.spot.title }}</h4>
+              <p class="text-xs text-muted-foreground mt-1">{{ b.driver.email }}</p>
+              <p class="text-sm text-brand-primary mt-1">{{ b.start_datetime|date:"M d, g:i A" }} – {{ b.end_datetime|date:"g:i A" }}</p>
+            </div>
+            <div class="text-right">
+              <p class="text-lg font-bold text-foreground">₹{{ b.final_price }}</p>
+              <span class="inline-block mt-1 text-[10px] uppercase font-bold tracking-widest text-muted-foreground px-2 py-1 bg-muted rounded">Confirmed</span>
+            </div>
+          </li>
+          {% empty %}
+          <li class="p-8 text-center text-muted-foreground">No upcoming bookings.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </section>
+
+    <!-- Past Bookings -->
+    <section>
+      <h2 class="text-xl font-bold font-display text-foreground mb-4">Past & Cancelled</h2>
+      <div class="bg-card border border-border rounded-2xl overflow-hidden">
+        <ul class="divide-y divide-border">
+          {% for b in past %}
+          <li class="p-4 flex items-center justify-between opacity-75">
+            <div>
+              <h4 class="font-medium text-foreground">{{ b.spot.title }}</h4>
+              <p class="text-xs text-muted-foreground mt-1">{{ b.start_datetime|date:"M d, Y" }}</p>
+            </div>
+            <div class="text-right">
+              <p class="text-sm font-semibold text-foreground">₹{{ b.final_price }}</p>
+              {% if b.status == 'completed' %}
+                <span class="text-xs text-green-500">Completed</span>
+              {% elif b.status == 'no_show' %}
+                <span class="text-xs text-red-500">No Show</span>
+              {% else %}
+                <span class="text-xs text-muted-foreground capitalize">{{ b.status }}</span>
+              {% endif %}
+            </div>
+          </li>
+          {% empty %}
+          <li class="p-8 text-center text-muted-foreground">No past history.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </section>
+
+  </div>
+</div>
+{% endblock content %}

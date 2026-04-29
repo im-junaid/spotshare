@@ -9,9 +9,7 @@
   — SpotShare
 {% endblock title %}
 {% block head %}
-  <!-- Leaflet CSS -->
-  <link rel="stylesheet"
-        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="{% static 'lib/leaflet/leaflet.css' %}">
   <style>
       /* Wizard step transitions */
       .wizard-step {
@@ -141,10 +139,47 @@
       .photo-slot.has-image .remove-preview:hover {
           background: rgba(239, 68, 68, 0.8);
       }
+
+      .map-tiles-dark {
+          filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+      }
   </style>
 {% endblock head %}
 {% block content %}
-  <div class="min-h-screen w-full pt-28 pb-20 max-w-6xl mx-auto  px-4 sm:px-6 md:px-8">
+  <div class="min-h-screen w-full pt-28 pb-20 max-w-6xl mx-auto px-4 sm:px-6 md:px-8">
+    {% if is_edit %}
+      <a href="{% url 'hosts:spot_detail' pk=spot.pk %}"
+         class="text-sm text-muted-foreground hover:text-brand-primary transition-colors mb-6 inline-flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg"
+             width="16"
+             height="16"
+             viewBox="0 0 24 24"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="2"
+             stroke-linecap="round"
+             stroke-linejoin="round">
+          <path d="m15 18-6-6 6-6" />
+        </svg>
+        Back to {{ spot.title }}
+      </a>
+    {% else %}
+      <a href="{% url 'hosts:dashboard' %}"
+         class="text-sm text-muted-foreground hover:text-brand-primary transition-colors mb-6 inline-flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg"
+             width="16"
+             height="16"
+             viewBox="0 0 24 24"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="2"
+             stroke-linecap="round"
+             stroke-linejoin="round">
+          <path d="m15 18-6-6 6-6" />
+        </svg>
+        Cancel & Return
+      </a>
+    {% endif %}
     <!-- PROGRESS BAR -->
     <div class="mb-12 relative">
       <div class="flex justify-between items-center relative z-10">
@@ -177,16 +212,6 @@
         </div>
       </div>
     </div>
-    <!-- MESSAGES -->
-    {% if messages %}
-      <div class="mb-6 space-y-2">
-        {% for message in messages %}
-          <div class="px-5 py-3 rounded-2xl border text-sm font-medium {% if message.tags == 'error' %}bg-danger/10 border-danger/30 text-danger {% else %}bg-primary/10 border-primary/30 text-primary{% endif %}">
-            {{ message }}
-          </div>
-        {% endfor %}
-      </div>
-    {% endif %}
     <form method="post" enctype="multipart/form-data" id="spot-wizard-form">
       {% csrf_token %}
       <!-- STEP 1 — LOCATION -->
@@ -440,16 +465,16 @@
         <!-- Dynamic photo grid -->
         <div id="photo-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4">
           {% for img_form in image_formset %}
-            <div class="photo-slot aspect-square rounded-2xl border-2 border-dashed border-border bg-card flex items-center justify-center cursor-pointer hover:border-primary/40 transition-all duration-300 group {% if img_form.instance.image %}has-image{% endif %}"
+            <div class="photo-slot aspect-square rounded-2xl border-2 border-dashed border-border bg-card flex items-center justify-center cursor-pointer hover:border-primary/40 transition-all duration-300 group {% if img_form.instance.pk and img_form.instance.image %}has-image{% endif %}"
                  data-index="{{ forloop.counter0 }}">
-              {% if img_form.instance.image %}
+              {% if img_form.instance.pk and img_form.instance.image %}
                 <img src="{{ img_form.instance.image.url }}"
                      class="preview-img"
                      alt="Spot photo">
               {% endif %}
               <!-- Remove button -->
               <button type="button" class="remove-preview" title="Remove photo">✕</button>
-              <!-- Placeholder UI (shown when no image) -->
+              <!-- Placeholder UI for images -->
               <div class="placeholder-ui flex flex-col items-center gap-2 p-4 text-center">
                 <div class="w-12 h-12 rounded-xl bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
                   <svg xmlns="http://www.w3.org/2000/svg"
@@ -472,8 +497,7 @@
                   {% endif %}
                 </span>
               </div>
-              <!-- Hidden file input + formset fields -->
-              <div class="hidden">
+              <div class="sr-only">
                 {{ img_form.image }}
                 {{ img_form.id }}
                 {{ img_form.DELETE }}
@@ -481,6 +505,34 @@
               </div>
             </div>
           {% endfor %}
+        </div>
+        <div id="empty-form-template" class="hidden">
+          <div class="photo-slot aspect-square rounded-2xl border-2 border-dashed border-border bg-card flex items-center justify-center cursor-pointer hover:border-primary/40 transition-all duration-300 group"
+               data-index="__prefix__">
+            <button type="button" class="remove-preview" title="Remove photo">✕</button>
+            <div class="placeholder-ui flex flex-col items-center gap-2 p-4 text-center">
+              <div class="w-12 h-12 rounded-xl bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     width="22"
+                     height="22"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="1.5"
+                     class="text-muted-foreground group-hover:text-primary transition-colors">
+                  <rect width="18" height="18" x="3" y="3" rx="2" ry="2" /><circle cx="9" cy="9" r="2" />
+                  <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+                </svg>
+              </div>
+              <span class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground-2">Optional</span>
+            </div>
+            <div class="sr-only">
+              {{ image_formset.empty_form.image }}
+              {{ image_formset.empty_form.id }}
+              {{ image_formset.empty_form.DELETE }}
+              {{ image_formset.empty_form.is_primary }}
+            </div>
+          </div>
         </div>
         <!-- Add more photos button -->
         <button type="button"
@@ -543,7 +595,7 @@
   </div>
 {% endblock content %}
 {% block scripts %}
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="{% static 'lib/leaflet/leaflet.js' %}"></script>
+  <script src="{% static 'js/spotshare-map.js' %}"></script>
   <script src="{% static 'js/sport-form.js' %}"></script>
 {% endblock scripts %}

@@ -2,10 +2,11 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
-
+from core.models import ParkingSpot
 
 def home(request):
-    return render(request, "core/pages/index.html")
+    featured_spots = ParkingSpot.objects.filter(status="active").order_by("-created_at")[:3]
+    return render(request, "core/pages/index.html", {"featured_spots": featured_spots})
 
 
 def signup(request):
@@ -31,4 +32,4 @@ def switch_role(request):
 
     if new_role == "host":
         return redirect("hosts:dashboard")
-    return redirect("core:home")
+    return redirect("driver:search")

@@ -26,13 +26,13 @@
       </div>
       <ul class="hidden lg:flex items-center gap-8 list-none">
         <li>
-          <a href="#" class="link-muted">About Us</a>
+          <a href="/#how-it-works" class="link-muted" data-scroll>How it Works</a>
         </li>
         <li>
-          <a href="#" class="link-muted">How it Works</a>
+          <a href="{% url 'driver:search' %}" class="link-muted">Find Parking</a>
         </li>
         <li>
-          <a href="#" class="link-muted">Find Parking</a>
+          <a href="/#about" class="link-muted" data-scroll>About</a>
         </li>
       </ul>
       <div class="hidden lg:flex items-center gap-3">
@@ -237,7 +237,7 @@
       {% if user.is_authenticated %}
         {% if request.active_role == 'host' %}
           <a href="{% url 'hosts:dashboard' %}"
-             class="btn btn-outline flex items-center justify-center gap-2 text-primary-foreground border-brand-primary/30">
+             class="btn btn-outline flex items-center justify-center gap-2 text-primary border-brand-primary/30">
             <svg xmlns="http://www.w3.org/2000/svg"
                  width="16"
                  height="16"
@@ -293,7 +293,7 @@
     <div class="flex-1 overflow-y-auto">
       <a href="#" class="drawer-link">About Us</a>
       <a href="#" class="drawer-link">How it Works</a>
-      <a href="#" class="drawer-link">Find Parking</a>
+      <a href="{% url 'driver:search' %}" class="drawer-link">Find Parking</a>
     </div>
   </div>
 </div>

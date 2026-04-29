@@ -1,123 +1,177 @@
 {% extends "core/base.html" %}
+{% block title %}
+  Manage Hours — {{ spot.title }} — SpotShare
+{% endblock title %}
+{% block head %}
+  <style>
+      /* Style formset widgets */
+      select,
+      input[type="time"],
+      input[type="text"] {
+          width: 100%;
+          padding: 0.5rem 0.75rem;
+          border-radius: 0.5rem;
+          background-color: var(--color-surface-elevated, #1a1a2e);
+          border: 1px solid var(--color-border-default, #2a2a3e);
+          color: var(--color-foreground, #fff);
+          font-size: 0.875rem;
+      }
 
-{% block title %}Manage Hours — {{ spot.title }} — SpotShare{% endblock %}
+      select:focus,
+      input:focus {
+          outline: none;
+          border-color: var(--color-brand-primary, #6366f1);
+      }
 
+      input[type="checkbox"] {
+          accent-color: var(--color-brand-primary, #6366f1);
+      }
+  </style>
+{% endblock head %}
 {% block content %}
-<div class="max-w-3xl mx-auto px-4 sm:px-6 py-8 mt-20">
-
-  <!-- Header -->
-  <div class="mb-8">
-    <a href="{% url 'hosts:spot_detail' pk=spot.pk %}" class="text-sm text-foreground/50 hover:text-brand-primary transition-colors mb-2 inline-block">
-      ← Back to {{ spot.title }}
-    </a>
-    <h1 class="text-2xl font-bold text-foreground">Manage Availability</h1>
-    <p class="mt-1 text-foreground/60">Set the hours when your spot "{{ spot.title }}" is available for parking.</p>
-  </div>
-
-  <!-- Messages -->
-  {% if messages %}
-  <div class="mb-6 space-y-2">
-    {% for message in messages %}
-    <div class="px-4 py-3 rounded-lg border text-sm
-      {% if message.tags == 'success' %}bg-emerald-500/10 border-emerald-500/30 text-emerald-400
-      {% elif message.tags == 'error' %}bg-red-500/10 border-red-500/30 text-red-400
-      {% else %}bg-blue-500/10 border-blue-500/30 text-blue-400{% endif %}">
-      {{ message }}
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 py-8 mt-20">
+    <!-- Header -->
+    <div class="mb-8">
+      <a href="{% url 'hosts:spot_detail' pk=spot.pk %}"
+         class="text-sm text-foreground/50 hover:text-brand-primary transition-colors mb-2 inline-block">
+        ← Back to {{ spot.title }}
+      </a>
+      <h1 class="text-2xl font-bold text-foreground">Manage Availability</h1>
+      <p class="mt-1 text-foreground/60">Set the hours when your spot "{{ spot.title }}" is available for parking.</p>
     </div>
-    {% endfor %}
-  </div>
-  {% endif %}
-
-  <form method="post" class="space-y-6">
-    {% csrf_token %}
-    {{ formset.management_form }}
-
-    {% if formset.non_form_errors %}
-    <div class="px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/30 text-sm text-red-400">
-      {% for error in formset.non_form_errors %}
-      <p>{{ error }}</p>
-      {% endfor %}
-    </div>
-    {% endif %}
-
-    <div class="bg-surface-card border border-border-default rounded-2xl p-6">
-      <h2 class="text-lg font-semibold text-foreground mb-2">Time Blocks</h2>
-      <p class="text-sm text-foreground/50 mb-5">Add available hours for each day. You can have multiple blocks per day.</p>
-
-      <div class="space-y-4" id="availability-formset">
-        {% for form in formset %}
-        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-4 rounded-xl bg-surface-elevated border border-border-default {% if form.errors %}border-red-500/30{% endif %}">
-          <!-- Day -->
-          <div class="flex-1 w-full sm:w-auto">
-            <label class="block text-xs text-foreground/40 mb-1">Day</label>
-            {{ form.day_of_week }}
+    <!-- Messages -->
+    {% if messages %}
+      <div class="mb-6 space-y-2">
+        {% for message in messages %}
+          <div class="px-4 py-3 rounded-lg border text-sm {% if message.tags == 'success' %}bg-emerald-500/10 border-emerald-500/30 text-emerald-400 {% elif message.tags == 'error' %}bg-red-500/10 border-red-500/30 text-red-400 {% else %}bg-blue-500/10 border-blue-500/30 text-blue-400{% endif %}">
+            {{ message }}
           </div>
-
-          <!-- Start Time -->
-          <div class="w-full sm:w-36">
-            <label class="block text-xs text-foreground/40 mb-1">Start</label>
-            {{ form.start_time }}
-          </div>
-
-          <!-- End Time -->
-          <div class="w-full sm:w-36">
-            <label class="block text-xs text-foreground/40 mb-1">End</label>
-            {{ form.end_time }}
-          </div>
-
-          <!-- Delete checkbox -->
-          <div class="flex items-center gap-1.5 pt-4 sm:pt-0">
-            {{ form.DELETE }}
-            <label for="{{ form.DELETE.id_for_label }}" class="text-xs text-red-400 cursor-pointer">Remove</label>
-            {{ form.id }}
-          </div>
-
-          {% if form.errors %}
-          <div class="w-full">
-            {% for field, errors in form.errors.items %}
-            <p class="text-xs text-red-400">{{ errors.0 }}</p>
-            {% endfor %}
-          </div>
-          {% endif %}
-        </div>
         {% endfor %}
       </div>
-    </div>
-
-    <!-- Submit -->
-    <div class="flex items-center justify-end gap-3">
-      <a href="{% url 'hosts:spot_detail' pk=spot.pk %}"
-         class="px-5 py-2.5 rounded-xl border border-border-default text-foreground/60 hover:text-foreground hover:border-foreground/30 font-medium transition-colors text-sm">
-        Cancel
-      </a>
-      <button type="submit"
-              class="px-6 py-2.5 rounded-xl bg-brand-primary text-black font-semibold hover:bg-brand-primary/90 transition-colors text-sm">
-        Save Availability
-      </button>
-    </div>
-  </form>
-</div>
-
+    {% endif %}
+    <form method="post" class="space-y-6">
+      {% csrf_token %}
+      {{ formset.management_form }}
+      {% if formset.non_form_errors %}
+        <div class="px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/30 text-sm text-red-400">
+          {% for error in formset.non_form_errors %}<p>{{ error }}</p>{% endfor %}
+        </div>
+      {% endif %}
+      <div class="bg-surface-card border border-border-default rounded-2xl p-6">
+        <h2 class="text-lg font-semibold text-foreground mb-2">Time Blocks</h2>
+        <p class="text-sm text-foreground/50 mb-5">Add available hours for each day. You can have multiple blocks per day.</p>
+        <div class="space-y-4" id="availability-formset">
+          {% for form in formset %}
+            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-4 rounded-xl bg-surface-elevated border border-border-default {% if form.errors %}border-red-500/30{% endif %}">
+              <!-- Day -->
+              <div class="flex-1 w-full sm:w-auto">
+                <label class="block text-xs text-foreground/40 mb-1">Day</label>
+                {{ form.day_of_week }}
+              </div>
+              <!-- Start Time -->
+              <div class="w-full sm:w-36">
+                <label class="block text-xs text-foreground/40 mb-1">Start</label>
+                {{ form.start_time }}
+              </div>
+              <!-- End Time -->
+              <div class="w-full sm:w-36">
+                <label class="block text-xs text-foreground/40 mb-1">End</label>
+                {{ form.end_time }}
+              </div>
+              <!-- Delete checkbox -->
+              <div class="flex items-center gap-1.5 pt-4 sm:pt-0">
+                {{ form.DELETE }}
+                <label for="{{ form.DELETE.id_for_label }}"
+                       class="text-xs text-red-400 cursor-pointer">Remove</label>
+                {{ form.id }}
+              </div>
+              {% if form.errors %}
+                <div class="w-full">
+                  {% for field, errors in form.errors.items %}<p class="text-xs text-red-400">{{ errors.0 }}</p>{% endfor %}
+                </div>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+        <button type="button"
+                id="add-block-btn"
+                class="mt-4 px-4 py-2 text-sm text-brand-primary bg-brand-primary/10 hover:bg-brand-primary/20 rounded-lg transition-colors inline-block font-medium">
+          + Add Time Block
+        </button>
+        <div id="empty-form-template" class="hidden">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-4 rounded-xl bg-surface-elevated border border-border-default fade-in">
+            <div class="flex-1 w-full sm:w-auto">
+              <label class="block text-xs text-foreground/40 mb-1">Day</label>
+              {{ formset.empty_form.day_of_week }}
+            </div>
+            <div class="w-full sm:w-36">
+              <label class="block text-xs text-foreground/40 mb-1">Start</label>
+              {{ formset.empty_form.start_time }}
+            </div>
+            <div class="w-full sm:w-36">
+              <label class="block text-xs text-foreground/40 mb-1">End</label>
+              {{ formset.empty_form.end_time }}
+            </div>
+            <div class="flex items-center gap-1.5 pt-4 sm:pt-0">
+              {{ formset.empty_form.DELETE }}
+              <label for="{{ formset.empty_form.DELETE.id_for_label }}"
+                     class="text-xs text-red-400 cursor-pointer">Remove</label>
+              {{ formset.empty_form.id }}
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Submit -->
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <button type="submit"
+                name="set_24_7"
+                value="true"
+                class="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-border-default text-foreground hover:bg-surface-elevated focus:ring-2 focus:ring-brand-primary font-medium transition-colors text-sm flex items-center justify-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg"
+               width="16"
+               height="16"
+               viewBox="0 0 24 24"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="2"
+               stroke-linecap="round"
+               stroke-linejoin="round"
+               class="text-brand-primary">
+            <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+          </svg>
+          Make Available 24/7
+        </button>
+        <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+          <a href="{% url 'hosts:spot_detail' pk=spot.pk %}"
+             class="px-5 py-2.5 rounded-xl border border-border-default text-foreground/60 hover:text-foreground hover:border-foreground/30 font-medium transition-colors text-sm">
+            Cancel
+          </a>
+          <button type="submit"
+                  class="px-6 py-2.5 rounded-xl bg-brand-primary text-black font-semibold hover:bg-brand-primary/90 transition-colors text-sm">
+            Save Availability
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
 {% endblock content %}
-
 {% block scripts %}
-<style>
-  /* Style formset widgets */
-  select, input[type="time"], input[type="text"] {
-    width: 100%;
-    padding: 0.5rem 0.75rem;
-    border-radius: 0.5rem;
-    background-color: var(--color-surface-elevated, #1a1a2e);
-    border: 1px solid var(--color-border-default, #2a2a3e);
-    color: var(--color-foreground, #fff);
-    font-size: 0.875rem;
-  }
-  select:focus, input:focus {
-    outline: none;
-    border-color: var(--color-brand-primary, #6366f1);
-  }
-  input[type="checkbox"] {
-    accent-color: var(--color-brand-primary, #6366f1);
-  }
-</style>
+  <script>
+      document.addEventListener("DOMContentLoaded", function() {
+          const addBtn = document.getElementById("add-block-btn");
+          const container = document.getElementById("availability-formset");
+          const totalForms = document.getElementById("id_availabilities-TOTAL_FORMS");
+
+          if (addBtn && container && totalForms) {
+              addBtn.addEventListener("click", function() {
+                  const formCount = parseInt(totalForms.value);
+                  const template = document.getElementById("empty-form-template").innerHTML;
+                  const newForm = template.replace(/__prefix__/g, formCount);
+
+                  container.insertAdjacentHTML('beforeend', newForm);
+                  totalForms.value = formCount + 1;
+              });
+          }
+      });
+  </script>
 {% endblock scripts %}

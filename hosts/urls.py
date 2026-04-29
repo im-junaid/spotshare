@@ -11,4 +11,11 @@ urlpatterns = [
     path("spots/<int:pk>/hours/", views.manage_availability, name="manage_availability"),
     path("spots/<int:pk>/toggle/", views.toggle_spot_status, name="toggle_status"),
     path("spots/<int:pk>/delete/", views.delete_spot, name="delete_spot"),
+    
+    # Booking Management
+    path("bookings/", views.host_bookings, name="bookings"),
+    path("bookings/<int:pk>/", views.host_booking_detail, name="booking_detail"),
+    path("bookings/<int:pk>/verify/", views.verify_otp, name="verify_otp"),
+    path("bookings/<int:pk>/no-show/", views.mark_no_show, name="mark_no_show"),
+    path("bookings/<int:pk>/complete/", views.complete_booking, name="complete_booking"),
 ]
