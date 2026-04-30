@@ -159,7 +159,7 @@
                     </div>
                   </div>
                   <!-- Actions -->
-                  <div class="flex items-center gap-2 mt-4 pt-3 border-t border-border-default">
+                  <div class="flex flex-wrap items-center gap-2 sm:gap-3 mt-4 pt-3 border-t border-border-default">
                     <a href="{% url 'hosts:spot_detail' pk=spot.pk %}"
                        class="text-sm text-brand-primary hover:text-brand-primary/80 font-medium transition-colors">
                       View Details
@@ -251,6 +251,23 @@
           {% else %}
             <p class="text-sm text-foreground/40">No upcoming bookings</p>
           {% endif %}
+          <div class="mt-4 pt-4 border-t border-border-default">
+            <a href="{% url 'hosts:bookings' %}"
+               class="text-sm text-brand-primary font-medium hover:text-brand-primary/80 transition-colors inline-flex items-center gap-1">
+              View All Bookings
+              <svg xmlns="http://www.w3.org/2000/svg"
+                   width="14"
+                   height="14"
+                   viewBox="0 0 24 24"
+                   fill="none"
+                   stroke="currentColor"
+                   stroke-width="2"
+                   stroke-linecap="round"
+                   stroke-linejoin="round">
+                <path d="m9 18 6-6-6-6" />
+              </svg>
+            </a>
+          </div>
         </div>
         <!-- Recent Activity -->
         <div class="bg-surface-card border border-border-default rounded-2xl p-5">
@@ -267,15 +284,9 @@
                 </div>
               {% endfor %}
             </div>
+          {% else %}
             <p class="text-sm text-foreground/40">No completed bookings yet</p>
           {% endif %}
-          
-          <div class="mt-4 pt-4 border-t border-border-default">
-            <a href="{% url 'hosts:bookings' %}" class="text-sm text-brand-primary font-medium hover:text-brand-primary/80 transition-colors inline-flex items-center gap-1">
-              View All Bookings
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-            </a>
-          </div>
         </div>
       </div>
     </div>

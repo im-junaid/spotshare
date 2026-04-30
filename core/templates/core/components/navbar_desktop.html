@@ -26,13 +26,15 @@
       </div>
       <ul class="hidden lg:flex items-center gap-8 list-none">
         <li>
-          <a href="/#how-it-works" class="link-muted" data-scroll>How it Works</a>
+          <a href="{% url 'core:home' %}#how-it-works"
+             class="link-muted"
+             data-scroll>How it Works</a>
         </li>
         <li>
           <a href="{% url 'driver:search' %}" class="link-muted">Find Parking</a>
         </li>
         <li>
-          <a href="/#about" class="link-muted" data-scroll>About</a>
+          <a href="{% url 'core:home' %}#about" class="link-muted" data-scroll>About</a>
         </li>
       </ul>
       <div class="hidden lg:flex items-center gap-3">
@@ -137,6 +139,21 @@
             </button>
           </form>
         {% endif %}
+        <a href="{% url 'core:profile' %}"
+           class="btn btn-outline flex items-center gap-1.5 text-forground hover:scale-[1.01]">
+          <svg xmlns="http://www.w3.org/2000/svg"
+               width="16"
+               height="16"
+               viewBox="0 0 24 24"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="2"
+               stroke-linecap="round"
+               stroke-linejoin="round">
+            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+        </a>
         <a href="{% url 'core:logout' %}"
            class="btn btn-outline flex text-forground hover:scale-[1.01]">Log Out</a>
       {% else %}
@@ -282,6 +299,22 @@
             </button>
           </form>
         {% endif %}
+        <a href="{% url 'core:profile' %}"
+           class="btn btn-outline hover:scale-[1.01] text-center flex items-center justify-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg"
+               width="16"
+               height="16"
+               viewBox="0 0 24 24"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="2"
+               stroke-linecap="round"
+               stroke-linejoin="round">
+            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+          Profile
+        </a>
         <a href="{% url 'core:logout' %}"
            class="btn btn-outline hover:scale-[1.01] text-center">Log Out</a>
       {% else %}
@@ -291,8 +324,8 @@
       {% endif %}
     </div>
     <div class="flex-1 overflow-y-auto">
-      <a href="#" class="drawer-link">About Us</a>
-      <a href="#" class="drawer-link">How it Works</a>
+      <a href="{% url 'core:home' %}#about" class="drawer-link">About Us</a>
+      <a href="{% url 'core:home' %}#how-it-works" class="drawer-link">How it Works</a>
       <a href="{% url 'driver:search' %}" class="drawer-link">Find Parking</a>
     </div>
   </div>

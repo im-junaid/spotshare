@@ -66,12 +66,17 @@ document.addEventListener("DOMContentLoaded", () => {
       const lng = document.getElementById("id_longitude").value;
       const addr = document.getElementById("id_address").value.trim();
       if (!lat || !lng) {
-        if (window.SpotToast) SpotToast.error("Please click on the map to set your parking spot location.");
-        else alert("Please click on the map to set your parking spot location.");
+        if (window.SpotToast)
+          SpotToast.error(
+            "Please click on the map to set your parking spot location.",
+          );
+        else
+          alert("Please click on the map to set your parking spot location.");
         return false;
       }
       if (!addr) {
-        if (window.SpotToast) SpotToast.error("Please enter the street address.");
+        if (window.SpotToast)
+          SpotToast.error("Please enter the street address.");
         else alert("Please enter the street address.");
         document.getElementById("id_address").focus();
         return false;
@@ -80,7 +85,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (step === 1) {
       const title = document.getElementById("id_title").value.trim();
       if (!title) {
-        if (window.SpotToast) SpotToast.error("Please enter a title for your spot.");
+        if (window.SpotToast)
+          SpotToast.error("Please enter a title for your spot.");
         else alert("Please enter a title for your spot.");
         document.getElementById("id_title").focus();
         return false;
@@ -227,7 +233,10 @@ document.addEventListener("DOMContentLoaded", () => {
         resetLocateBtn();
       },
       onError: (msg) => {
-        if (window.SpotToast) SpotToast.error(msg + ". Please click on the map to place the pin manually.");
+        if (window.SpotToast)
+          SpotToast.error(
+            msg + ". Please click on the map to place the pin manually.",
+          );
         else alert(msg);
         resetLocateBtn();
       },
@@ -262,16 +271,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const addMoreBtn = document.getElementById("add-more-photos");
   const emptyFormTemplate = document.getElementById("empty-form-template");
   const totalFormsInput = document.getElementById("id_images-TOTAL_FORMS");
-  const MAX_FORMS = 8;
+  const MAX_FORMS = 3;
 
   if (addMoreBtn && emptyFormTemplate && totalFormsInput) {
     addMoreBtn.addEventListener("click", () => {
       let currentFormCount = parseInt(totalFormsInput.value);
       if (currentFormCount >= MAX_FORMS) {
         if (window.SpotToast) {
-          SpotToast.warning("You can only add up to 8 photos.");
+          SpotToast.warning("You can only add up to 3 photos.");
         } else {
-          alert("You can only add up to 8 photos.");
+          alert("You can only add up to 3 photos.");
         }
         return;
       }
@@ -439,12 +448,22 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
 
-      if (validImageCount < 2) {
+      if (validImageCount < 1) {
         e.preventDefault();
         if (window.SpotToast) {
-          SpotToast.error("Please provide at least 2 photos for your spot.");
+          SpotToast.error("Please provide at least 1 photo for your spot.");
         } else {
-          alert("Please provide at least 2 photos for your spot.");
+          alert("Please provide at least 1 photo for your spot.");
+        }
+        goToStep(2);
+        return;
+      }
+      if (validImageCount > 3) {
+        e.preventDefault();
+        if (window.SpotToast) {
+          SpotToast.error("Maximum 3 photos are allowed.");
+        } else {
+          alert("Maximum 3 photos are allowed.");
         }
         goToStep(2);
         return;

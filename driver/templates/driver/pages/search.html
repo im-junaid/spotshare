@@ -173,7 +173,6 @@
           }
       }
 
-      /*  UPDATED NOW BADGE  */
       .updated-badge {
           display: inline-flex;
           align-items: center;
@@ -187,60 +186,76 @@
           background: rgb(var(--brand-primary) / 0.08);
       }
 
-      /* Leaflet overrides */
-      .custom-marker {
+      /*  PRICE MARKERS (JustPark style)  */
+      .price-marker {
+          background: #111;
+          color: white;
+          font-weight: 700;
+          font-size: 0.85rem;
+          padding: 0.3rem 0.6rem;
+          border-radius: 9999px;
+          border: 1px solid #333;
+          white-space: nowrap;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: max-content;
+          transition: all 0.2s;
+      }
+
+      .price-marker::after {
+          content: '';
+          position: absolute;
+          bottom: -5px;
+          left: 50%;
+          transform: translateX(-50%);
+          border-width: 5px 5px 0;
+          border-style: solid;
+          border-color: #111 transparent transparent transparent;
+      }
+
+      .price-marker:hover {
           background: rgb(var(--brand-primary));
-          border: 3px solid rgb(var(--background));
-          border-radius: 50%;
-          box-shadow: 0 2px 8px rgb(0 0 0 / 0.3);
+          color: #000;
+          border-color: rgb(var(--brand-primary));
+          z-index: 1000 !important;
+          transform: scale(1.1);
       }
 
-      .user-marker {
-          background: #3b82f6;
-          border: 3px solid white;
-          border-radius: 50%;
-          box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.3), 0 2px 8px rgb(0 0 0 / 0.3);
-          animation: pulse-ring 2s infinite;
-      }
-
-      .leaflet-popup-content-wrapper {
-          background: rgb(var(--card)) !important;
-          color: rgb(var(--foreground)) !important;
-          border-radius: var(--radius-xl) !important;
-          border: 1px solid rgb(var(--border)) !important;
-          box-shadow: 0 8px 24px rgb(0 0 0 / 0.3) !important;
-      }
-
-      .leaflet-popup-tip {
-          background: rgb(var(--card)) !important;
-          border: 1px solid rgb(var(--border)) !important;
-      }
-
-      .leaflet-popup-close-button {
-          color: rgb(var(--foreground) / 0.5) !important;
-      }
-
-      select#vehicle-filter {
-          appearance: none;
-          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23a3e635' stroke-width='2'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
-          background-repeat: no-repeat;
-          background-position: right 0.75rem center;
-          padding-right: 2.5rem;
+      .price-marker:hover::after {
+          border-top-color: rgb(var(--brand-primary));
       }
 
       /* Scrollable spot list */
       .spots-list-scroll {
-          max-height: calc(100vh - 180px);
+          max-height: calc(100vh - 250px);
           overflow-y: auto;
           scrollbar-width: thin;
           scrollbar-color: rgb(var(--brand-primary) / 0.3) transparent;
+          padding-right: 0.5rem;
       }
 
       @media (max-width: 767px) {
           .spots-list-scroll {
-              max-height: none;
-              overflow-y: visible;
+              max-height: 50vh;
           }
+      }
+
+      /* GREEN BUTTON OVERRIDE */
+      .btn-reserve {
+          background-color: #16a34a !important;
+          /* Tailwind green-600 */
+          color: white !important;
+          border: none !important;
+          border-radius: 0.5rem !important;
+          font-weight: 700 !important;
+      }
+
+      .btn-reserve:hover {
+          background-color: #15803d !important;
+          /* Tailwind green-700 */
       }
   </style>
 {% endblock head %}
@@ -262,7 +277,7 @@
     </div>
     <!--  SEARCH + FILTERS  -->
     <div class="search-glass p-4 mb-6 animate-on-scroll delay-100">
-      <div class="flex flex-col md:flex-row gap-3">
+      <div class="flex flex-col md:flex-row  flex-wrap gap-3 pt-2">
         <div class="relative flex-1">
           <svg class="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
                xmlns="http://www.w3.org/2000/svg"
@@ -282,12 +297,22 @@
                  placeholder="Search by name or address…"
                  class="pl-11! bg-surface border-border w-full rounded-xl">
         </div>
-        
-        <div class="flex gap-2">
-          <input type="datetime-local" id="filter-start" title="Start Time" class="py-3 px-4 text-sm rounded-xl bg-surface border border-border focus:border-brand-primary outline-none text-foreground flex-1">
-          <input type="datetime-local" id="filter-end" title="End Time" class="py-3 px-4 text-sm rounded-xl bg-surface border border-border focus:border-brand-primary outline-none text-foreground flex-1">
+        <div class="flex gap-2 w-full md:w-auto">
+          <div class="flex-1 relative">
+            <span class="absolute md:-top-4.5 left-3 bg-surface px-1 text-[10px] uppercase font-bold text-muted-foreground tracking-wider z-10">Start Time</span>
+            <input type="datetime-local"
+                   id="filter-start"
+                   title="Start Time"
+                   class="w-full py-3 px-4 text-sm rounded-xl bg-surface border border-border focus:border-brand-primary outline-none text-foreground relative z-0">
+          </div>
+          <div class="flex-1 relative">
+            <span class="absolute md:-top-4.5 left-3 bg-surface px-1 text-[10px] uppercase font-bold text-muted-foreground tracking-wider z-10">End Time</span>
+            <input type="datetime-local"
+                   id="filter-end"
+                   title="End Time"
+                   class="w-full py-3 px-4 text-sm rounded-xl bg-surface border border-border focus:border-brand-primary outline-none text-foreground relative z-0">
+          </div>
         </div>
-
         <select id="vehicle-filter"
                 class="py-3 px-5 text-sm rounded-xl bg-surface border border-border focus:border-brand-primary focus:ring-1 focus:ring-primary outline-none transition-all text-foreground">
           <option value="">All Vehicles</option>
@@ -387,55 +412,26 @@
       </div>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 animate-on-scroll delay-200">
-      <!-- LEFT: MAP -->
-      <div class="relative">
-        <div id="spot-map"></div>
-        <button id="recenter-btn"
-                class="absolute bottom-4 right-4 z-10 btn btn-outline bg-card/80 backdrop-blur-md p-2.5! rounded-xl!"
-                title="Re-center on my location">
-          <svg xmlns="http://www.w3.org/2000/svg"
-               width="18"
-               height="18"
-               viewBox="0 0 24 24"
-               fill="none"
-               stroke="currentColor"
-               stroke-width="2"
-               stroke-linecap="round"
-               stroke-linejoin="round">
-            <circle cx="12" cy="12" r="3" />
-            <path d="M12 2v4" />
-            <path d="M12 18v4" />
-            <path d="m4.93 4.93 2.83 2.83" />
-            <path d="m16.24 16.24 2.83 2.83" />
-            <path d="M2 12h4" />
-            <path d="M18 12h4" />
-            <path d="m4.93 19.07 2.83-2.83" />
-            <path d="m16.24 7.76 2.83-2.83" />
-          </svg>
-        </button>
-      </div>
-      <!-- RIGHT: SPOT LIST -->
-      <div>
+      <!-- LEFT: SPOT LIST -->
+      <div class="flex flex-col h-full">
         <!-- List header -->
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-base font-display font-semibold text-foreground">
-            <span id="results-count" class="text-foreground"></span>
+            <div class="text-sm font-semibold mb-3">
+              <span id="results-count" class="text-foreground"></span>
+            </div>
+            {% comment %} TODO: Recommended SPOT for users
+            <span class="text-brand-primary border-b-2 border-brand-primary pb-1 cursor-pointer">Recommended</span>
+             <span class="text-muted-foreground hover:text-foreground cursor-pointer transition">Cheapest</span>
+            <span class="text-muted-foreground hover:text-foreground cursor-pointer transition">Closest</span> {% endcomment %}
           </h2>
-          <span class="updated-badge">
+          <span class="updated-badge hidden sm:inline-flex">
             <div class="pulse-dot" style="width:6px;height:6px;"></div>
-            Updated Just Now
+            Live
           </span>
         </div>
-        <div id="spots-grid" class="spots-list-scroll flex flex-col gap-4 pr-1">
+        <div id="spots-grid" class="spots-list-scroll flex flex-col gap-4">
           <!-- Skeleton loaders -->
-          <div class="spot-card">
-            <div class="skeleton" style="width:170px;min-height:130px"></div>
-            <div class="p-4 flex-1 space-y-3">
-              <div class="skeleton h-5 w-3/4"></div>
-              <div class="skeleton h-4 w-full"></div>
-              <div class="skeleton h-8 w-full mt-2"></div>
-            </div>
-          </div>
           <div class="spot-card">
             <div class="skeleton" style="width:170px;min-height:130px"></div>
             <div class="p-4 flex-1 space-y-3">
@@ -465,6 +461,51 @@
           <h3 class="text-base font-display font-semibold text-foreground mb-1">No spots found</h3>
           <p class="text-muted-foreground text-sm">Try adjusting your filters or increasing the search radius.</p>
         </div>
+      </div>
+      <!-- RIGHT: MAP -->
+      <div class="relative overflow-hidden"
+           style="border-radius: var(--radius-2xl)">
+        <div id="spot-map"></div>
+        <!-- Fixed Center Pointer -->
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full z-400 pointer-events-none drop-shadow-xl"
+             style="margin-top: 10px">
+          <svg width="42"
+               height="50"
+               viewBox="0 0 42 50"
+               fill="none"
+               xmlns="http://www.w3.org/2000/svg">
+            <path d="M21 0C9.4 0 0 9.4 0 21C0 36.75 21 50 21 50C21 50 42 36.75 42 21C42 9.4 32.6 0 21 0Z" fill="#E6D5F7" />
+            <circle cx="21" cy="18" r="7" fill="#000000" />
+          </svg>
+        </div>
+        <!-- Redo Search Button -->
+        <button id="redo-search-btn"
+                class="absolute bottom-6 left-1/2 -translate-x-1/2 z-400 hidden bg-green-700 hover:bg-green-600 text-white px-6 py-2.5 rounded-full shadow-lg font-bold text-sm transition-all">
+          Redo Search Here
+        </button>
+        <button id="recenter-btn"
+                class="absolute bottom-20 right-4 z-[1000] flex items-center justify-center bg-card/90 backdrop-blur-md hover:bg-card border border-border shadow-lg !p-3 !rounded-full transition-all text-foreground"
+                title="Re-center on my location">
+          <svg xmlns="http://www.w3.org/2000/svg"
+               width="18"
+               height="18"
+               viewBox="0 0 24 24"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="2"
+               stroke-linecap="round"
+               stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M12 2v4" />
+            <path d="M12 18v4" />
+            <path d="m4.93 4.93 2.83 2.83" />
+            <path d="m16.24 16.24 2.83 2.83" />
+            <path d="M2 12h4" />
+            <path d="M18 12h4" />
+            <path d="m4.93 19.07 2.83-2.83" />
+            <path d="m16.24 7.76 2.83-2.83" />
+          </svg>
+        </button>
       </div>
     </div>
   </section>
@@ -499,13 +540,25 @@
           </div>
           <div class="flex flex-wrap gap-1.5 mt-2" data-field="amenities"></div>
         </div>
-        <a href="#" class="btn-book mt-3" data-field="book-btn">Select &amp; Book</a>
+        <a href="#" class="btn-book btn-reserve mt-3" data-field="book-btn">Reserve</a>
       </div>
     </div>
   </template>
 {% endblock content %}
 {% block scripts %}
   <script src="{% static 'lib/leaflet/leaflet.js' %}"></script>
+  <script>
+      // Set min time to now
+      const searchStart = document.getElementById("filter-start");
+      const searchEnd = document.getElementById("filter-end");
+      if (searchStart && searchEnd) {
+          const n = new Date();
+          n.setMinutes(n.getMinutes() - n.getTimezoneOffset());
+          const m = n.toISOString().slice(0, 16);
+          searchStart.min = m;
+          searchEnd.min = m;
+      }
+  </script>
   <script src="{% static 'js/spotshare-map.js' %}"></script>
   <script src="{% static 'js/driver-search.js' %}"></script>
 {% endblock scripts %}

@@ -1,6 +1,7 @@
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.contrib.auth import login, logout, get_user_model
+from django.core.cache import cache
 import json
 from .utils import is_valid_email, OTPHandler
 
@@ -21,7 +22,6 @@ def send_otp(request):
             status=400,
         )
 
-    print("\n send otp : ", data)
     email = data.get("email")
     full_name = data.get("full_name")
     phone = data.get("phone")
@@ -40,6 +40,25 @@ def send_otp(request):
         )
 
     user_exists = User.objects.filter(email=email).exists()
+
+    # Check if account is locked out from too many failed OTPs
+    lockout_key = f"lockout_{email}"
+    if cache.get(lockout_key):
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "Account locked due to too many failed attempts. Please try again after 1 hour.",
+                "code": "Account Locked",
+            },
+            status=403,
+        )
+
+    # Check generation rate limits
+    allowed, wait_msg = OTPHandler.check_rate_limit(email)
+    if not allowed:
+        return JsonResponse(
+            {"success": False, "message": wait_msg, "code": "Rate Limited"}, status=429
+        )
 
     # --- LOGIN ---
     if auth_type == "login":
@@ -126,7 +145,6 @@ def verify_otp(request):
             status=400,
         )
 
-    print("\n Verify : ", data)
     email = data.get("email")
     otp = data.get("otp")
 
@@ -140,15 +158,47 @@ def verify_otp(request):
             status=400,
         )
 
-    if not OTPHandler.verify_otp(email, otp):
+    from django.core.cache import cache
+
+    lockout_key = f"lockout_{email}"
+    if cache.get(lockout_key):
         return JsonResponse(
             {
                 "success": False,
-                "message": "Invaild or expired OTP.",
-                "code": "Invaild OTP",
+                "message": "Account locked due to too many failed attempts. Please try again after 1 hour.",
+                "code": "Account Locked",
+            },
+            status=403,
+        )
+
+    if not OTPHandler.verify_otp(email, otp):
+        # Increment failed attempts
+        failed_key = f"failed_otp_{email}"
+        failed_count = cache.get(failed_key, 0) + 1
+        cache.set(failed_key, failed_count, timeout=3600)
+
+        if failed_count >= 3:
+            cache.set(lockout_key, True, timeout=3600)
+            return JsonResponse(
+                {
+                    "success": False,
+                    "message": "Account locked due to too many failed attempts. Please try again after 1 hour.",
+                    "code": "Account Locked",
+                },
+                status=403,
+            )
+
+        return JsonResponse(
+            {
+                "success": False,
+                "message": f"Invalid or expired OTP. You have {3 - failed_count} attempts left.",
+                "code": "Invalid OTP",
             },
             status=400,
         )
+
+    # On success, clear failed attempts
+    cache.delete(f"failed_otp_{email}")
 
     signup_data = OTPHandler.get_signup_data(email)
 

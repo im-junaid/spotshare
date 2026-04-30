@@ -40,6 +40,7 @@ class ParkingSpot(models.Model):
     base_rate_per_hour = models.DecimalField(max_digits=8, decimal_places=2)
 
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="active")
+    is_deleted = models.BooleanField(default=False)
     is_covered = models.BooleanField(default=False)
     has_guard = models.BooleanField(default=False)
     has_cctv = models.BooleanField(default=False)
@@ -66,6 +67,13 @@ class ParkingSpot(models.Model):
     @property
     def image_count(self):
         return self.images.count()
+
+    @property
+    def google_maps_url(self):
+        """Generate a Google Maps directions URL to this spot."""
+        if self.latitude and self.longitude:
+            return f"https://www.google.com/maps/dir/?api=1&destination={self.latitude},{self.longitude}"
+        return ""
 
 
 class SpotImage(models.Model):
@@ -135,7 +143,7 @@ class Booking(models.Model):
     ]
 
     spot = models.ForeignKey(
-        ParkingSpot, on_delete=models.CASCADE, related_name="bookings"
+        ParkingSpot, on_delete=models.PROTECT, related_name="bookings"
     )
     driver = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -148,7 +156,7 @@ class Booking(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
 
     # OTP verification
-    otp = models.CharField(max_length=6, blank=True)
+    otp = models.CharField(max_length=4, blank=True)
     otp_verified_at = models.DateTimeField(null=True, blank=True)
     cancelled_reason = models.CharField(
         max_length=50,
@@ -166,21 +174,22 @@ class Booking(models.Model):
         return f"Booking #{self.pk} — {self.spot.title}"
 
     def save(self, *args, **kwargs):
-        # Auto-generate a 6-digit OTP on first save
+        # Auto-generate a 4-digit OTP on first save
         if not self.otp:
-            self.otp = "".join(random.choices(string.digits, k=6))
+            self.otp = "".join(random.choices(string.digits, k=4))
         super().save(*args, **kwargs)
 
     # --- Helper properties ---
 
     @property
     def is_otp_revealable(self):
-        """Driver can only see OTP during the booking time window."""
+        """Driver can only see OTP shortly before or during the booking time window."""
+        from datetime import timedelta
+
         now = timezone.now()
-        return (
-            self.status == "confirmed"
-            and self.start_datetime <= now <= self.end_datetime
-        )
+        # Allow revealing 30 minutes before start time
+        reveal_start = self.start_datetime - timedelta(minutes=60)
+        return self.status == "confirmed" and reveal_start <= now <= self.end_datetime
 
     @property
     def is_past_grace_period(self):
@@ -201,4 +210,3 @@ class Booking(models.Model):
         lat = self.spot.latitude
         lng = self.spot.longitude
         return f"https://www.google.com/maps/dir/?api=1&destination={lat},{lng}"
-

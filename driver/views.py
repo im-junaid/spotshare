@@ -26,7 +26,7 @@ def search(request):
 def api_nearby_spots(request):
     """Return active parking spots as JSON."""
     spots = (
-        ParkingSpot.objects.filter(status="active")
+        ParkingSpot.objects.filter(status="active", is_deleted=False)
         .select_related("owner")
         .prefetch_related(
             Prefetch(
@@ -62,11 +62,16 @@ def api_nearby_spots(request):
 
     if start_time_str and end_time_str:
         from datetime import datetime, timedelta
-        from django.utils import timezone
         try:
             req_start = timezone.make_aware(datetime.fromisoformat(start_time_str))
             req_end = timezone.make_aware(datetime.fromisoformat(end_time_str))
             
+            if req_start < now:
+                return JsonResponse({"spots": [], "count": 0, "error": "Cannot search for past time slots."})
+
+            if req_start >= req_end:
+                return JsonResponse({"spots": [], "count": 0, "error": "End time must be after start time."})
+
             if req_start > now + timedelta(days=7):
                 return JsonResponse({"spots": [], "count": 0, "error": "Can only book up to 1 week in advance."})
 
@@ -156,20 +161,21 @@ def spot_detail(request, pk):
         ParkingSpot.objects.prefetch_related("images", "availabilities"),
         pk=pk,
         status="active",
+        is_deleted=False,
     )
 
-    # Group availability by day
+    # Remove Weekly Schedule (No longer needed on frontend per user request)
     avail_by_day = {}
-    for a in spot.availabilities.all():
-        day_name = a.get_day_of_week_display()
-        avail_by_day.setdefault(day_name, []).append(
-            f"{a.start_time.strftime('%H:%M')} – {a.end_time.strftime('%H:%M')}"
-        )
+
+    start_val = request.GET.get('start', '')
+    end_val = request.GET.get('end', '')
 
     context = {
         "spot": spot,
         "images": spot.images.all(),
         "avail_by_day": avail_by_day,
+        "start_val": start_val,
+        "end_val": end_val,
     }
     return render(request, "driver/pages/spot_detail.html", context)
 
@@ -178,7 +184,11 @@ def spot_detail(request, pk):
 @login_required
 @require_POST
 def create_booking(request, pk):
-    spot = get_object_or_404(ParkingSpot, pk=pk, status="active")
+    spot = get_object_or_404(ParkingSpot, pk=pk, status="active", is_deleted=False)
+
+    if spot.owner == request.user:
+        messages.error(request, "You cannot book your own parking spot.")
+        return redirect("driver:spot_detail", pk=pk)
 
     start_str = request.POST.get("start_datetime", "")
     end_str = request.POST.get("end_datetime", "")
@@ -188,7 +198,6 @@ def create_booking(request, pk):
         return redirect("driver:spot_detail", pk=pk)
 
     from datetime import datetime, timedelta
-    from django.utils import timezone
 
     try:
         start_dt = timezone.make_aware(datetime.fromisoformat(start_str))
@@ -260,21 +269,24 @@ def my_bookings(request):
     now = timezone.now()
     user_bookings = Booking.objects.filter(driver=request.user).select_related("spot")
 
-    # Current parking session or pending arrival (starts now or soon)
+    from datetime import timedelta
+    
+    # Current parking session or arriving within the next 24 hours
     active = user_bookings.filter(
         status__in=["confirmed", "active"],
-        start_datetime__lte=now,
+        start_datetime__lte=now + timedelta(hours=24),
         end_datetime__gte=now,
-    ).order_by("start_datetime")
+    ).select_related("spot").prefetch_related("spot__images").order_by("start_datetime")
     
+    # Later bookings (Starting more than 24 hours from now)
     upcoming = user_bookings.filter(
         status="confirmed",
-        start_datetime__gt=now,
-    ).order_by("start_datetime")
+        start_datetime__gt=now + timedelta(hours=24),
+    ).select_related("spot").prefetch_related("spot__images").order_by("start_datetime")
     
     past = user_bookings.filter(
         status__in=["completed", "cancelled", "no_show"],
-    ).order_by("-start_datetime")[:10]
+    ).select_related("spot").prefetch_related("spot__images").order_by("-start_datetime")[:10]
 
     context = {
         "active_bookings": active,

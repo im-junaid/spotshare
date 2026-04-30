@@ -4,8 +4,22 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {% comment %} TODO : minify for production (tailwind)  {% endcomment %}
-    <link rel="stylesheet" href="{% static 'css/tailwind-dev.css' %}">
+    <!-- Favicons and App Icons -->
+    <link rel="icon"
+          type="image/png"
+          href="{% static 'favicon/favicon-96x96.png' %}"
+          sizes="96x96" />
+    <link rel="icon"
+          type="image/svg+xml"
+          href="{% static 'favicon/favicon.svg' %}" />
+    <link rel="shortcut icon" href="{% static 'favicon/favicon.ico' %}" />
+    <link rel="apple-touch-icon"
+          sizes="180x180"
+          href="{% static 'favicon/apple-touch-icon.png' %}" />
+    <meta name="apple-mobile-web-app-title" content="Spotshare" />
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="{% static 'favicon/site.webmanifest' %}" />
+    <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
     <title>
       {% block title %}
       {% endblock title %}
@@ -104,19 +118,38 @@
     <script src="{% static 'js/animate.js' %}"></script>
     {% if messages %}
       <script>
-        document.addEventListener("DOMContentLoaded", () => {
-          {% for message in messages %}
-            {% if message.tags == 'error' %}
+          document.addEventListener("DOMContentLoaded", () => {
+              {
+                  %
+                  for message in messages %
+              } {
+                  %
+                  if message.tags == 'error' %
+              }
               SpotToast.error("{{ message|escapejs }}");
-            {% elif message.tags == 'warning' %}
+              {
+                  %
+                  elif message.tags == 'warning' %
+              }
               SpotToast.warning("{{ message|escapejs }}");
-            {% elif message.tags == 'success' %}
+              {
+                  %
+                  elif message.tags == 'success' %
+              }
               SpotToast.success("{{ message|escapejs }}");
-            {% else %}
+              {
+                  %
+                  else %
+              }
               SpotToast.info("{{ message|escapejs }}");
-            {% endif %}
-          {% endfor %}
-        });
+              {
+                  %
+                  endif %
+              } {
+                  %
+                  endfor %
+              }
+          });
       </script>
     {% endif %}
     {% block scripts %}

@@ -43,7 +43,8 @@ window.SpotMap = (function () {
     const map = L.map(elementId, {
       zoomControl: false,
       attributionControl: true,
-      scrollWheelZoom: false,
+      scrollWheelZoom:
+        opts.scrollWheelZoom !== undefined ? opts.scrollWheelZoom : true,
     }).setView(center, zoom);
 
     // Attach tile layers
@@ -80,9 +81,7 @@ window.SpotMap = (function () {
     map._spot.themeObserver = observer;
 
     // Zoom control top-right
-    L.control
-      .zoom({ position: opts.zoomPosition || "topright" })
-      .addTo(map);
+    L.control.zoom({ position: opts.zoomPosition || "topright" }).addTo(map);
 
     return map;
   }
@@ -113,7 +112,7 @@ window.SpotMap = (function () {
   }
 
   /**
-   * Create the branded pin icon (pulsing dot).
+   * pin icon (pulsing dot).
    */
   function pinIcon(opts = {}) {
     return L.divIcon({
@@ -125,7 +124,7 @@ window.SpotMap = (function () {
   }
 
   /**
-   * Create a small spot marker icon.
+   * small spot marker icon.
    */
   function spotIcon(opts = {}) {
     return L.divIcon({

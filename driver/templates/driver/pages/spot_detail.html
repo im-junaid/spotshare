@@ -1,254 +1,326 @@
 {% extends "core/base.html" %}
 {% load static %}
-{% block title %}{{ spot.title }} — SpotShare{% endblock title %}
+{% block title %}
+  {{ spot.title }} — SpotShare
+{% endblock title %}
 {% block head %}
-<style>
-  .gallery-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.5rem;
-    border-radius: var(--radius-2xl);
-    overflow: hidden;
-  }
-  .gallery-grid img:first-child {
-    grid-row: 1 / 3;
-    height: 100%;
-  }
-  .gallery-grid img {
-    width: 100%;
-    height: 180px;
-    object-fit: cover;
-    background: rgb(var(--muted));
-    transition: transform 0.3s ease;
-    cursor: pointer;
-  }
-  .gallery-grid img:hover { transform: scale(1.02); }
+  <style>
+      .gallery-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 0.5rem;
+          border-radius: var(--radius-2xl);
+          overflow: hidden;
+      }
 
-  @media (max-width: 639px) {
-    .gallery-grid { grid-template-columns: 1fr; }
-    .gallery-grid img:first-child { grid-row: auto; }
-    .gallery-grid img { height: 200px; }
-  }
+      .gallery-grid img:first-child {
+          grid-row: 1 / 3;
+          height: 100%;
+      }
 
-  .detail-card {
-    background: rgb(var(--card));
-    border: 1px solid rgb(var(--border));
-    border-radius: var(--radius-2xl);
-    padding: 1.5rem;
-  }
+      .gallery-grid img {
+          width: 100%;
+          height: 180px;
+          object-fit: cover;
+          background: rgb(var(--muted));
+          transition: transform 0.3s ease;
+          cursor: pointer;
+      }
 
-  .amenity-pill {
-    display: inline-flex; align-items: center; gap: 0.4rem;
-    padding: 0.5rem 1rem; border-radius: var(--radius-xl);
-    font-size: 0.82rem; font-weight: 500;
-    background: rgb(var(--muted));
-    color: rgb(var(--foreground) / 0.75);
-    border: 1px solid rgb(var(--border));
-  }
-  .amenity-pill.active {
-    background: rgb(var(--brand-primary) / 0.1);
-    border-color: rgb(var(--brand-primary) / 0.3);
-    color: rgb(var(--brand-primary));
-  }
+      .gallery-grid img:hover {
+          transform: scale(1.02);
+      }
 
-  .avail-row {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 0.6rem 0;
-    border-bottom: 1px solid rgb(var(--border) / 0.5);
-  }
-  .avail-row:last-child { border-bottom: none; }
+      @media (max-width: 639px) {
+          .gallery-grid {
+              grid-template-columns: 1fr;
+          }
 
-  .booking-form {
-    background: rgb(var(--card) / 0.65);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgb(var(--border));
-    border-radius: var(--radius-2xl);
-    padding: 1.5rem;
-    box-shadow: 0 8px 32px rgb(0 0 0 / 0.25);
-  }
+          .gallery-grid img:first-child {
+              grid-row: auto;
+          }
 
-  input[type="datetime-local"] {
-    color-scheme: dark;
-  }
-  .light input[type="datetime-local"] {
-    color-scheme: light;
-  }
-</style>
+          .gallery-grid img {
+              height: 200px;
+          }
+      }
+
+      .detail-card {
+          background: rgb(var(--card));
+          border: 1px solid rgb(var(--border));
+          border-radius: var(--radius-2xl);
+          padding: 1.5rem;
+      }
+
+      .amenity-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.4rem;
+          padding: 0.5rem 1rem;
+          border-radius: var(--radius-xl);
+          font-size: 0.82rem;
+          font-weight: 500;
+          background: rgb(var(--muted));
+          color: rgb(var(--foreground) / 0.75);
+          border: 1px solid rgb(var(--border));
+      }
+
+      .amenity-pill.active {
+          background: rgb(var(--brand-primary) / 0.1);
+          border-color: rgb(var(--brand-primary) / 0.3);
+          color: rgb(var(--brand-primary));
+      }
+
+      .avail-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 0.6rem 0;
+          border-bottom: 1px solid rgb(var(--border) / 0.5);
+      }
+
+      .avail-row:last-child {
+          border-bottom: none;
+      }
+
+      .booking-form {
+          background: rgb(var(--card) / 0.65);
+          backdrop-filter: blur(20px);
+          border: 1px solid rgb(var(--border));
+          border-radius: var(--radius-2xl);
+          padding: 1.5rem;
+          box-shadow: 0 8px 32px rgb(0 0 0 / 0.25);
+      }
+
+      input[type="datetime-local"] {
+          color-scheme: dark;
+      }
+
+      .light input[type="datetime-local"] {
+          color-scheme: light;
+      }
+  </style>
 {% endblock head %}
-
 {% block content %}
-<section class="pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto w-full">
-
-  <!-- Back link -->
-  <a href="{% url 'driver:search' %}" class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-brand-primary transition-colors mb-5">
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-    Back to Search
-  </a>
-
-  <!-- Image Gallery -->
-  <div class="gallery-grid mb-6 animate-on-scroll">
-    {% for img in images %}
-      <img src="{{ img.image.url }}" alt="{{ spot.title }}" loading="lazy">
-    {% empty %}
-      <div class="flex items-center justify-center bg-muted text-muted-foreground" style="height:360px;grid-column:1/-1;border-radius:var(--radius-2xl)">
-        <span class="text-sm">No images uploaded</span>
-      </div>
-    {% endfor %}
-  </div>
-
-  <!-- Main 2-col layout -->
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-    <!-- LEFT: Details (2/3) -->
-    <div class="lg:col-span-2 space-y-5">
-
-      <!-- Title + Price -->
-      <div class="animate-on-scroll">
-        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-          <div>
-            <h1 class="text-2xl font-display font-bold text-foreground">{{ spot.title }}</h1>
-            <p class="text-muted-foreground text-sm mt-1 flex items-center gap-1.5">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
-              {{ spot.address }}
-            </p>
-          </div>
-          <div class="text-right shrink-0">
-            <span class="text-2xl font-bold text-brand-primary">₹{{ spot.base_rate_per_hour }}</span>
-            <span class="text-sm text-muted-foreground"> /hour</span>
-          </div>
+  <section class="pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto w-full">
+    <!-- Back link -->
+    <a href="{% url 'driver:search' %}"
+       class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-brand-primary transition-colors mb-5">
+      <svg xmlns="http://www.w3.org/2000/svg"
+           width="16"
+           height="16"
+           viewBox="0 0 24 24"
+           fill="none"
+           stroke="currentColor"
+           stroke-width="2"
+           stroke-linecap="round"
+           stroke-linejoin="round">
+        <path d="m15 18-6-6 6-6" />
+      </svg>
+      Back to Search
+    </a>
+    <!-- Main Image -->
+    <div class="mb-6 animate-on-scroll rounded-2xl overflow-hidden bg-muted border border-border h-62.5 md:h-100">
+      {% if images %}
+        <img src="{{ images.0.image.url }}"
+             alt="{{ spot.title }}"
+             class="w-full h-full object-cover"
+             loading="lazy">
+      {% else %}
+        <div class="flex items-center justify-center h-full text-muted-foreground">
+          <span class="text-sm">No image available</span>
         </div>
-      </div>
-
-      <!-- Amenities -->
-      <div class="detail-card animate-on-scroll delay-100">
-        <h2 class="text-sm font-semibold text-foreground mb-3">Amenities & Info</h2>
-        <div class="flex flex-wrap gap-2">
-          <span class="amenity-pill {% if spot.is_covered %}active{% endif %}">
-            🏠 {% if spot.is_covered %}Covered{% else %}Open Air{% endif %}
-          </span>
-          <span class="amenity-pill {% if spot.has_cctv %}active{% endif %}">
-            📹 {% if spot.has_cctv %}CCTV{% else %}No CCTV{% endif %}
-          </span>
-          <span class="amenity-pill {% if spot.has_guard %}active{% endif %}">
-            🛡️ {% if spot.has_guard %}Guard{% else %}No Guard{% endif %}
-          </span>
-          <span class="amenity-pill {% if spot.has_ev_charging %}active{% endif %}">
-            ⚡ {% if spot.has_ev_charging %}EV Charging{% else %}No EV{% endif %}
-          </span>
-          <span class="amenity-pill active">
-            🚗 {{ spot.get_vehicle_size_display }}
-          </span>
-        </div>
-      </div>
-
-      <!-- Description -->
-      {% if spot.description %}
-      <div class="detail-card animate-on-scroll delay-200">
-        <h2 class="text-sm font-semibold text-foreground mb-2">Description</h2>
-        <p class="text-muted-foreground text-sm leading-relaxed">{{ spot.description }}</p>
-      </div>
       {% endif %}
-
-      <!-- Access Instructions -->
-      {% if spot.instructions %}
-      <div class="detail-card animate-on-scroll delay-200">
-        <h2 class="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-          Access Instructions
-        </h2>
-        <p class="text-muted-foreground text-sm leading-relaxed">{{ spot.instructions }}</p>
-      </div>
-      {% endif %}
-
-      <!-- Availability Schedule -->
-      <div class="detail-card animate-on-scroll delay-200">
-        <h2 class="text-sm font-semibold text-foreground mb-3">Weekly Schedule</h2>
-        {% if avail_by_day %}
-          {% for day, slots in avail_by_day.items %}
-            <div class="avail-row">
-              <span class="text-sm font-medium text-foreground">{{ day }}</span>
-              <div class="flex flex-wrap gap-2">
-                {% for slot in slots %}
-                  <span class="text-xs px-2 py-1 rounded-lg bg-brand-primary/10 text-brand-primary font-medium">{{ slot }}</span>
-                {% endfor %}
-              </div>
+    </div>
+    <!-- Main 2-col layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="lg:col-span-2 space-y-5">
+        <!-- Title + Price -->
+        <div class="animate-on-scroll">
+          <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+            <div>
+              <h1 class="text-2xl font-display font-bold text-foreground">{{ spot.title }}</h1>
+              <p class="text-muted-foreground text-sm mt-1 flex items-center gap-1.5">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     width="14"
+                     height="14"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="2">
+                  <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+                {{ spot.address }}
+              </p>
+              <a href="{{ spot.google_maps_url }}" target="_blank" rel="noopener noreferrer" class="text-xs font-semibold text-brand-primary hover:underline mt-1 inline-block">
+                ↗ Open in Google Maps
+              </a>
             </div>
-          {% endfor %}
-        {% else %}
-          <p class="text-muted-foreground text-sm">No availability schedule set.</p>
+            <div class="text-right shrink-0">
+              <span class="text-2xl font-bold text-brand-primary">₹{{ spot.base_rate_per_hour }}</span>
+              <span class="text-sm text-muted-foreground">/hour</span>
+            </div>
+          </div>
+        </div>
+        <!-- Amenities -->
+        <div class="detail-card animate-on-scroll delay-100">
+          <h2 class="text-sm font-semibold text-foreground mb-3">Amenities & Info</h2>
+          <div class="flex flex-wrap gap-2">
+            <span class="amenity-pill {% if spot.is_covered %}active{% endif %}">
+              🏠
+              {% if spot.is_covered %}
+                Covered
+              {% else %}
+                Open Air
+              {% endif %}
+            </span>
+            <span class="amenity-pill {% if spot.has_cctv %}active{% endif %}">
+              📹
+              {% if spot.has_cctv %}
+                CCTV
+              {% else %}
+                No CCTV
+              {% endif %}
+            </span>
+            <span class="amenity-pill {% if spot.has_guard %}active{% endif %}">
+              🛡️
+              {% if spot.has_guard %}
+                Guard
+              {% else %}
+                No Guard
+              {% endif %}
+            </span>
+            <span class="amenity-pill {% if spot.has_ev_charging %}active{% endif %}">
+              ⚡
+              {% if spot.has_ev_charging %}
+                EV Charging
+              {% else %}
+                No EV
+              {% endif %}
+            </span>
+            <span class="amenity-pill active">🚗 {{ spot.get_vehicle_size_display }}</span>
+          </div>
+        </div>
+        <!-- Description -->
+        {% if spot.description %}
+          <div class="detail-card animate-on-scroll delay-200">
+            <h2 class="text-sm font-semibold text-foreground mb-2">Description</h2>
+            <p class="text-muted-foreground text-sm leading-relaxed">{{ spot.description }}</p>
+          </div>
+        {% endif %}
+        <!-- Access Instructions -->
+        {% if spot.instructions %}
+          <div class="detail-card animate-on-scroll delay-200">
+            <h2 class="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg"
+                   width="16"
+                   height="16"
+                   viewBox="0 0 24 24"
+                   fill="none"
+                   stroke="currentColor"
+                   stroke-width="2">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 16v-4" />
+                <path d="M12 8h.01" />
+              </svg>
+              Access Instructions
+            </h2>
+            <p class="text-muted-foreground text-sm leading-relaxed">{{ spot.instructions }}</p>
+          </div>
         {% endif %}
       </div>
-    </div>
-
-    <!-- RIGHT: Booking form (1/3) -->
-    <div>
-      <div class="booking-form sticky top-24 animate-on-scroll delay-100">
-        <h2 class="text-base font-display font-semibold text-foreground mb-1">Book This Spot</h2>
-        <p class="text-muted-foreground text-xs mb-4">Select your parking window</p>
-
-        <form method="POST" action="{% url 'driver:create_booking' pk=spot.pk %}" id="booking-form">
-          {% csrf_token %}
-
-          <div class="space-y-3 mb-4">
-            <div>
-              <label for="start_datetime" class="text-xs text-muted-foreground mb-1 block">Start Time</label>
-              <input type="datetime-local" name="start_datetime" id="start_datetime" required
-                     class="bg-surface border-border text-sm">
+      <!-- RIGHT: Booking form -->
+      <div>
+        <div class="booking-form sticky top-24 animate-on-scroll delay-100">
+          <h2 class="text-base font-display font-semibold text-foreground mb-1">Book This Spot</h2>
+          <p class="text-muted-foreground text-xs mb-4">Select your parking window</p>
+          <form method="post"
+                action="{% url 'driver:create_booking' pk=spot.pk %}"
+                id="booking-form">
+            {% csrf_token %}
+            <div class="space-y-3 mb-4">
+              <div>
+                <label for="start_datetime" class="text-xs text-muted-foreground mb-1 block">Start Time</label>
+                <input type="datetime-local"
+                       name="start_datetime"
+                       id="start_datetime"
+                       required
+                       value="{{ start_val }}"
+                       class="bg-surface border-border text-sm w-full py-2 px-3 rounded-lg focus:border-brand-primary outline-none">
+              </div>
+              <div>
+                <label for="end_datetime" class="text-xs text-muted-foreground mb-1 block">End Time</label>
+                <input type="datetime-local"
+                       name="end_datetime"
+                       id="end_datetime"
+                       required
+                       value="{{ end_val }}"
+                       class="bg-surface border-border text-sm w-full py-2 px-3 rounded-lg focus:border-brand-primary outline-none">
+              </div>
             </div>
-            <div>
-              <label for="end_datetime" class="text-xs text-muted-foreground mb-1 block">End Time</label>
-              <input type="datetime-local" name="end_datetime" id="end_datetime" required
-                     class="bg-surface border-border text-sm">
+            <!-- Price Preview -->
+            <div class="flex items-center justify-between py-3 px-4 rounded-xl bg-muted border border-border mb-4">
+              <span class="text-sm text-muted-foreground">Estimated Total</span>
+              <span id="price-preview" class="text-lg font-bold text-brand-primary">₹0</span>
             </div>
-          </div>
-
-          <!-- Price Preview -->
-          <div class="flex items-center justify-between py-3 px-4 rounded-xl bg-muted border border-border mb-4">
-            <span class="text-sm text-muted-foreground">Estimated Total</span>
-            <span id="price-preview" class="text-lg font-bold text-brand-primary">₹0</span>
-          </div>
-
-          <button type="submit" class="btn btn-primary w-full gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-            Confirm Booking
-          </button>
-        </form>
-
-        <p class="text-xs text-muted-foreground text-center mt-3">Rate: ₹{{ spot.base_rate_per_hour }}/hr · No payment required for MVP</p>
+            {% if spot.owner == request.user %}
+              <div class="p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-500 text-xs font-black text-center uppercase tracking-widest leading-relaxed">
+                You are the host of this spot.
+              </div>
+            {% else %}
+              <button type="submit"
+                      class="btn btn-primary w-full gap-2 shadow-lg shadow-brand-primary/20 group">
+                <svg class="group-hover:translate-x-1 transition-transform"
+                     xmlns="http://www.w3.org/2000/svg"
+                     width="16"
+                     height="16"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="2">
+                  <path d="M5 12h14" />
+                  <path d="m12 5 7 7-7 7" />
+                </svg>
+                Confirm Booking
+              </button>
+            {% endif %}
+          </form>
+          <p class="text-xs text-muted-foreground text-center mt-3">
+            Rate: ₹{{ spot.base_rate_per_hour }}/hr · No payment required for MVP
+          </p>
+        </div>
       </div>
     </div>
+  </section>
+  <script>
+      // Live price calculation
+      const rate = {{ spot.base_rate_per_hour|default:"0" }};
+      const startEl = document.getElementById("start_datetime");
+      const endEl = document.getElementById("end_datetime");
+      const preview = document.getElementById("price-preview");
 
-  </div>
-</section>
+      function updatePrice() {
+          if (!startEl.value || !endEl.value) return;
+          const start = new Date(startEl.value);
+          const end = new Date(endEl.value);
+          if (end <= start) {
+              preview.textContent = "₹0";
+              return;
+          }
+          const hours = (end - start) / 3600000;
+          const total = (hours * rate).toFixed(2);
+          preview.textContent = "₹" + total;
+      }
 
-<script>
-  // Live price calculation
-  const rate = {{ spot.base_rate_per_hour }};
-  const startEl = document.getElementById("start_datetime");
-  const endEl = document.getElementById("end_datetime");
-  const preview = document.getElementById("price-preview");
+      startEl.addEventListener("change", updatePrice);
+      endEl.addEventListener("change", updatePrice);
 
-  function updatePrice() {
-    if (!startEl.value || !endEl.value) return;
-    const start = new Date(startEl.value);
-    const end = new Date(endEl.value);
-    if (end <= start) {
-      preview.textContent = "₹0";
-      return;
-    }
-    const hours = (end - start) / 3600000;
-    const total = (hours * rate).toFixed(2);
-    preview.textContent = "₹" + total;
-  }
-
-  startEl.addEventListener("change", updatePrice);
-  endEl.addEventListener("change", updatePrice);
-
-  // Set min to now
-  const now = new Date();
-  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-  const minVal = now.toISOString().slice(0, 16);
-  startEl.min = minVal;
-  endEl.min = minVal;
-</script>
+      // Set min to now
+      const now = new Date();
+      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+      const minVal = now.toISOString().slice(0, 16);
+      startEl.min = minVal;
+      endEl.min = minVal;
+  </script>
 {% endblock content %}

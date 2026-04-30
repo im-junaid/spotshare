@@ -58,14 +58,14 @@ class SpotImageForm(forms.ModelForm):
         fields = ["image", "is_primary"]
 
 
-# Image FormSet: minimum 2 images, max 8
+# Image FormSet: minimum 1 image, max 3
 SpotImageFormSet = inlineformset_factory(
     ParkingSpot,
     SpotImage,
     form=SpotImageForm,
-    min_num=2,
+    min_num=1,
     validate_min=True,
-    max_num=8,
+    max_num=3,
     extra=0,
     can_delete=True,
 )

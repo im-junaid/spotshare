@@ -78,4 +78,19 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
   }
+  // 4. Smooth Anchor Scrolling via Lenis
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+      const targetId = this.getAttribute('href');
+      if (targetId === '#') return;
+      
+      const targetElement = document.querySelector(targetId);
+      if (targetElement) {
+        if (window.lenis) {
+          e.preventDefault();
+          window.lenis.scrollTo(targetElement);
+        }
+      }
+    });
+  });
 });

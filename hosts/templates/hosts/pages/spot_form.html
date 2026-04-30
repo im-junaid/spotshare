@@ -35,58 +35,7 @@
       }
 
       /* Leaflet map adjustments */
-      .leaflet-container {
-          font-family: var(--font-body);
-          background: rgb(var(--background));
-      }
-
-      .leaflet-control-attribution {
-          background: rgba(var(--card), 0.5) !important;
-          color: rgb(var(--foreground), 0.4) !important;
-          font-size: 9px !important;
-          backdrop-filter: blur(4px);
-      }
-
-      .leaflet-control-attribution a {
-          color: rgb(var(--foreground), 0.6) !important;
-      }
-
-      .leaflet-control-zoom a {
-          background: rgb(var(--card)) !important;
-          color: rgb(var(--foreground)) !important;
-          border: 1px solid rgba(var(--foreground), 0.1) !important;
-          backdrop-filter: blur(8px);
-      }
-
-      .leaflet-control-zoom a:hover {
-          background: rgba(var(--card), 1) !important;
-          color: rgb(var(--brand-primary)) !important;
-      }
-
-      /* Custom map pin pulse */
-      .map-pin-dot {
-          width: 18px;
-          height: 18px;
-          background: rgb(var(--brand-primary));
-          border-radius: 50%;
-          border: 3px solid rgb(var(--background));
-          box-shadow: 0 0 0 0 rgba(var(--brand-primary), 0.4);
-          animation: pin-pulse 2s ease-in-out infinite;
-      }
-
-      @keyframes pin-pulse {
-
-          0%,
-          100% {
-              box-shadow: 0 0 0 0 rgba(var(--brand-primary), 0.4);
-          }
-
-          50% {
-              box-shadow: 0 0 0 16px rgba(var(--brand-primary), 0);
-          }
-      }
-
-      /* Photo upload cards */
+      /* (Global map styles moved to input.css) */
       .photo-slot {
           position: relative;
           overflow: hidden;
@@ -138,10 +87,6 @@
 
       .photo-slot.has-image .remove-preview:hover {
           background: rgba(239, 68, 68, 0.8);
-      }
-
-      .map-tiles-dark {
-          filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
       }
   </style>
 {% endblock head %}
@@ -453,7 +398,7 @@
         <div class="mb-8">
           <h1 class="text-3xl font-bold text-foreground mb-2">Add Photos</h1>
           <p class="text-muted-foreground text-sm">
-            Upload at least 2 photos of your spot. More photos help drivers book with confidence.
+            Upload 1 to 3 photos of your spot.
           </p>
         </div>
         {{ image_formset.management_form }}
@@ -490,7 +435,7 @@
                   </svg>
                 </div>
                 <span class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground-2">
-                  {% if forloop.counter <= 2 %}
+                  {% if forloop.counter <= 1 %}
                     Required
                   {% else %}
                     Optional
@@ -553,7 +498,7 @@
           Add More Photos
         </button>
         <p class="text-xs text-muted-foreground-2 mt-3 text-center">
-          Minimum 2 photos required · Click a card to browse or drag and drop
+          Minimum 1 photo required (max 3) · Click a card to browse
         </p>
         <!-- Back / Submit -->
         <div class="flex justify-between items-center mt-8">

@@ -4,152 +4,249 @@
   Driver Dashboard — SpotShare
 {% endblock title %}
 {% block content %}
-  <div class="w-full py-8 px-4 sm:px-6 lg:px-10 mt-20">
-    <div class="flex items-center justify-between mb-8">
+  <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8 mt-20">
+    <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div>
-        <h1 class="text-3xl font-bold font-display text-foreground">My Parking</h1>
-        <p class="text-muted-foreground mt-1 text-sm">Manage your upcoming trips and active bookings</p>
+        <h1 class="text-4xl md:text-5xl font-black text-foreground tracking-tighter">My Bookings</h1>
+        <p class="text-muted-foreground mt-2 text-lg font-medium">Manage your active sessions and upcoming trips.</p>
       </div>
-      <a href="{% url 'driver:search' %}" class="btn btn-primary gap-2">
+      <a href="{% url 'driver:search' %}"
+         class="btn btn-primary px-8 py-4 group flex items-center gap-3 w-fit">
         <svg xmlns="http://www.w3.org/2000/svg"
-             width="16"
-             height="16"
+             width="20"
+             height="20"
              viewBox="0 0 24 24"
              fill="none"
              stroke="currentColor"
-             stroke-width="2">
+             stroke-width="2.5"
+             stroke-linecap="round"
+             stroke-linejoin="round">
           <circle cx="11" cy="11" r="8" />
           <path d="m21 21-4.3-4.3" />
         </svg>
-        Find Parking
+        <span class="font-black uppercase tracking-widest text-xs">Find New Spot</span>
       </a>
     </div>
-    <div class="space-y-12">
-      <!-- Active Parking Section -->
-      <section>
-        <h2 class="text-xl font-bold font-display text-foreground mb-4 flex items-center gap-2">
-          <span class="relative flex h-3 w-3">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-primary opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-3 w-3 bg-brand-primary"></span>
-          </span>
-          Current & Upcoming (Today)
-        </h2>
-        <div class="grid gap-4 sm:grid-cols-2">
+    <div class="space-y-16">
+      <!-- Active & Today -->
+      <section class="animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100 fill-mode-both">
+        <div class="flex items-center gap-4 mb-8">
+          <div class="relative flex h-4 w-4">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-4 w-4 bg-primary shadow-glow"></span>
+          </div>
+          <h2 class="text-2xl font-black text-foreground tracking-tight">Today's Sessions</h2>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
           {% for b in active_bookings %}
-            <div class="bg-card border border-brand-primary/30 p-5 rounded-2xl flex flex-col justify-between shadow-lg relative overflow-hidden">
-              <div class="absolute top-0 right-0 w-24 h-24 bg-brand-primary/5 rounded-bl-full pointer-events-none"></div>
-              <div>
-                <div class="flex justify-between items-start mb-2">
-                  <span class="px-2 py-1 {% if b.status == 'active' %}bg-green-500/10 text-green-500{% else %}bg-brand-primary/10 text-brand-primary{% endif %} rounded-md text-xs font-semibold uppercase tracking-wider">
-                    {{ b.get_status_display }}
-                  </span>
-                  <span class="text-lg font-bold text-foreground">₹{{ b.final_price }}</span>
+            <div class="group bg-card/40 backdrop-blur-3xl border border-border rounded-2xl overflow-hidden shadow-2xl transition-all hover:border-primary/50 flex flex-col md:flex-row h-full">
+              <!-- Image Section -->
+              <div class="w-full md:w-48 h-48 md:h-auto relative shrink-0">
+                {% with b.spot.images.all|first as img %}
+                  {% if img %}
+                    <img src="{{ img.image.url }}"
+                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                         alt="{{ b.spot.title }}">
+                  {% else %}
+                    <div class="w-full h-full bg-muted flex items-center justify-center">
+                      <svg class="text-muted-foreground/20 w-12 h-12"
+                           xmlns="http://www.w3.org/2000/svg"
+                           viewBox="0 0 24 24"
+                           fill="none"
+                           stroke="currentColor"
+                           stroke-width="1">
+                        <rect width="18" height="18" x="3" y="3" rx="2" ry="2" /><circle cx="9" cy="9" r="2" />
+                        <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+                      </svg>
+                    </div>
+                  {% endif %}
+                {% endwith %}
+                <div class="absolute inset-0 bg-linear-to-t from-black/60 to-transparent md:hidden"></div>
+                <div class="absolute bottom-4 left-4 md:hidden">
+                  <span class="text-white font-black text-lg">₹{{ b.final_price }}</span>
                 </div>
-                <h3 class="text-xl font-bold text-foreground">{{ b.spot.title }}</h3>
-                <p class="text-sm text-muted-foreground mt-1 flex items-start gap-1">
-                  <svg xmlns="http://www.w3.org/2000/svg"
-                       width="14"
-                       height="14"
-                       viewBox="0 0 24 24"
-                       fill="none"
-                       stroke="currentColor"
-                       stroke-width="2"
-                       class="mt-0.5 shrink-0">
-                    <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
-                    <circle cx="12" cy="10" r="3" />
-                  </svg>
-                  {{ b.spot.address }}
-                </p>
-                <p class="font-medium text-foreground mt-3">{{ b.start_datetime|date:"g:i A" }} – {{ b.end_datetime|date:"g:i A" }}</p>
               </div>
-              <div class="mt-5 pt-4 border-t border-border flex gap-3">
-                <a href="{% url 'driver:booking_detail' pk=b.pk %}"
-                   class="btn btn-primary flex-1">View Parking Pass</a>
-                <a href="{{ b.google_maps_url }}"
-                   target="_blank"
-                   class="btn border border-border bg-surface text-foreground hover:bg-muted shrink-0 px-3">
-                  <svg xmlns="http://www.w3.org/2000/svg"
-                       width="20"
-                       height="20"
-                       viewBox="0 0 24 24"
-                       fill="none"
-                       stroke="currentColor"
-                       stroke-width="2"
-                       stroke-linecap="round"
-                       stroke-linejoin="round">
-                    <path d="m22 2-7 20-4-9-9-4Z" />
-                    <path d="M22 2 11 13" />
-                  </svg>
-                </a>
+              <!-- Content Section -->
+              <div class="p-6 flex-1 flex flex-col justify-between">
+                <div>
+                  <div class="flex justify-between items-start mb-4">
+                    <span class="badge {% if b.status == 'active' %}badge-success{% else %}badge-primary{% endif %} uppercase tracking-widest text-[10px] font-black">
+                      {{ b.get_status_display }}
+                    </span>
+                    <span class="hidden md:block text-2xl font-black text-foreground">₹{{ b.final_price }}</span>
+                  </div>
+                  <h3 class="text-xl font-black text-foreground group-hover:text-primary transition-colors line-clamp-1">
+                    {{ b.spot.title }}
+                  </h3>
+                  <div class="mt-3 space-y-2">
+                    <div class="flex items-center gap-2 text-muted-foreground text-sm font-medium">
+                      <svg class="w-4 h-4 shrink-0 text-primary"
+                           xmlns="http://www.w3.org/2000/svg"
+                           viewBox="0 0 24 24"
+                           fill="none"
+                           stroke="currentColor"
+                           stroke-width="2">
+                        <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+                      </svg>
+                      {{ b.start_datetime|date:"g:i A" }} – {{ b.end_datetime|date:"g:i A" }}
+                    </div>
+                    <div class="flex items-start gap-2 text-muted-foreground text-sm font-medium line-clamp-1">
+                      <svg class="w-4 h-4 shrink-0 text-primary mt-0.5"
+                           xmlns="http://www.w3.org/2000/svg"
+                           viewBox="0 0 24 24"
+                           fill="none"
+                           stroke="currentColor"
+                           stroke-width="2">
+                        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                        <circle cx="12" cy="10" r="3" />
+                      </svg>
+                      {{ b.spot.address }}
+                    </div>
+                  </div>
+                </div>
+                <div class="mt-8 flex flex-wrap gap-3">
+                  {% if b.is_otp_revealable %}
+                    <button onclick="revealOTP(this, '{{ b.otp }}')"
+                            class="btn btn-primary flex-1 py-3 group">
+                      <span class="font-black uppercase tracking-widest text-[10px]">Reveal OTP</span>
+                    </button>
+                  {% endif %}
+                  <a href="{% url 'driver:booking_detail' pk=b.pk %}"
+                     class="btn btn-outline flex-1 py-3 hover:bg-primary/5">
+                    <span class="font-black uppercase tracking-widest text-[10px]">Booking Details</span>
+                  </a>
+                  <a href="{{ b.google_maps_url }}"
+                     target="_blank"
+                     class="btn btn-outline p-3 hover:bg-primary/10 border-border group">
+                    <svg class="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors"
+                         xmlns="http://www.w3.org/2000/svg"
+                         viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="2">
+                      <path d="m22 2-7 20-4-9-9-4Z" />
+                      <path d="M22 2 11 13" />
+                    </svg>
+                  </a>
+                </div>
               </div>
             </div>
           {% empty %}
-            <div class="col-span-full py-8 text-center bg-muted/30 rounded-2xl border border-dashed border-border">
-              <p class="text-muted-foreground">You don't have any parking booked for right now.</p>
+            <div class="col-span-full py-16 text-center border-2 border-dashed border-border rounded-2xl bg-foreground/5 backdrop-blur-md">
+              <div class="w-20 h-20 bg-muted/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg class="text-muted-foreground/40 w-10 h-10"
+                     xmlns="http://www.w3.org/2000/svg"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="1.5">
+                  <rect width="18" height="18" x="3" y="4" rx="2" ry="2" /><line x1="16" x2="16" y1="2" y2="6" /><line x1="8" x2="8" y1="2" y2="6" /><line x1="3" x2="21" y1="10" y2="10" />
+                  <path d="M7 14h.01" />
+                  <path d="M17 14h.01" />
+                  <path d="M7 18h.01" />
+                  <path d="M12 18h.01" />
+                  <path d="M17 18h.01" />
+                </svg>
+              </div>
+              <h3 class="text-xl font-bold text-foreground mb-2">No active bookings today</h3>
+              <p class="text-muted-foreground font-medium mb-8">You're all clear! Ready to find your next spot?</p>
+              <a href="{% url 'driver:search' %}" class="btn btn-primary px-8 py-4">Find Parking</a>
             </div>
           {% endfor %}
         </div>
       </section>
-      <!-- Upcoming Future Bookings -->
-      <section>
-        <h2 class="text-xl font-bold font-display text-foreground mb-4">Later Bookings</h2>
-        <div class="bg-card border border-border rounded-2xl overflow-hidden">
-          <ul class="divide-y divide-border">
-            {% for b in upcoming_bookings %}
-              <li class="p-4 hover:bg-muted/30 transition flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <h4 class="font-semibold text-foreground text-lg">{{ b.spot.title }}</h4>
-                  <p class="text-sm text-brand-primary font-medium mt-1">
-                    {{ b.start_datetime|date:"l, M d" }} · {{ b.start_datetime|date:"g:i A" }} – {{ b.end_datetime|date:"g:i A" }}
-                  </p>
+      <!-- Later Bookings -->
+      <section class="animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200 fill-mode-both">
+        <h2 class="text-2xl font-black text-foreground tracking-tight mb-8">Upcoming Trips</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {% for b in upcoming_bookings %}
+            <div class="bg-surface/50 backdrop-blur-md border border-border p-6 rounded-2xl hover:border-primary/40 transition-all group">
+              <div class="flex justify-between items-start mb-6">
+                <div class="p-3 bg-primary/5 rounded-xl border border-primary/10">
+                  <svg class="text-primary w-5 h-5"
+                       xmlns="http://www.w3.org/2000/svg"
+                       viewBox="0 0 24 24"
+                       fill="none"
+                       stroke="currentColor"
+                       stroke-width="2">
+                    <path d="M8 2v4" />
+                    <path d="M16 2v4" />
+                    <rect width="18" height="18" x="3" y="4" rx="2" />
+                    <path d="M3 10h18" />
+                    <path d="m9 16 2 2 4-4" />
+                  </svg>
                 </div>
-                <div class="flex items-center gap-4 sm:text-right">
-                  <div>
-                    <p class="text-lg font-bold text-foreground">₹{{ b.final_price }}</p>
-                    <span class="text-xs text-muted-foreground uppercase font-semibold">Confirmed</span>
-                  </div>
-                  <div class="flex flex-col gap-2">
-                    <a href="{% url 'driver:booking_detail' pk=b.pk %}"
-                       class="btn bg-muted px-4 py-1.5 text-sm hover:bg-brand-primary hover:text-black">Details</a>
-                  </div>
-                </div>
-              </li>
-            {% empty %}
-              <li class="p-8 text-center text-muted-foreground">No future bookings scheduled.</li>
-            {% endfor %}
-          </ul>
+                <span class="text-xl font-black text-foreground">₹{{ b.final_price }}</span>
+              </div>
+              <h4 class="font-black text-lg text-foreground mb-2 truncate">{{ b.spot.title }}</h4>
+              <div class="space-y-1 mb-6">
+                <p class="text-sm font-bold text-primary">{{ b.start_datetime|date:"l, M d" }}</p>
+                <p class="text-xs text-muted-foreground font-medium">
+                  {{ b.start_datetime|date:"g:i A" }} – {{ b.end_datetime|date:"g:i A" }}
+                </p>
+              </div>
+              <a href="{% url 'driver:booking_detail' pk=b.pk %}"
+                 class="btn btn-outline w-full py-3 hover:bg-primary hover:text-black hover:border-transparent transition-all">
+                <span class="font-black uppercase tracking-widest text-[10px]">Pass Details</span>
+              </a>
+            </div>
+          {% empty %}
+            <div class="col-span-full py-8 text-center bg-foreground/5 rounded-2xl border border-border border-dashed">
+              <p class="text-muted-foreground font-medium">No upcoming trips scheduled.</p>
+            </div>
+          {% endfor %}
         </div>
       </section>
-      <!-- Past Bookings -->
-      <section>
-        <h2 class="text-xl font-bold font-display text-foreground mb-4">History</h2>
-        <div class="bg-card border border-border rounded-2xl overflow-hidden">
-          <ul class="divide-y divide-border">
-            {% for b in past_bookings %}
-              <li class="p-4 flex items-center justify-between opacity-75">
-                <div>
-                  <h4 class="font-medium text-foreground">{{ b.spot.title }}</h4>
-                  <p class="text-xs text-muted-foreground mt-1">{{ b.start_datetime|date:"M d, Y" }}</p>
-                </div>
-                <div class="text-right">
-                  <p class="text-sm font-semibold text-foreground">₹{{ b.final_price }}</p>
-                  {% if b.status == 'completed' %}
-                    <span class="text-xs text-green-500 font-semibold">Completed</span>
-                  {% elif b.status == 'no_show' %}
-                    <span class="text-xs text-red-500 font-semibold">No Show</span>
-                  {% elif b.status == 'cancelled' %}
-                    <span class="text-xs text-muted-foreground font-semibold">Cancelled</span>
-                  {% else %}
-                    <span class="text-xs text-muted-foreground capitalize">{{ b.status }}</span>
-                  {% endif %}
-                </div>
-              </li>
-            {% empty %}
-              <li class="p-8 text-center text-muted-foreground">Your history is clean.</li>
-            {% endfor %}
-          </ul>
+      <!-- History -->
+      <section class="animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300 fill-mode-both pb-20">
+        <h2 class="text-2xl font-black text-foreground tracking-tight mb-8">History</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {% for b in past_bookings %}
+            <div class="flex items-center gap-4 p-4 bg-foreground/5 rounded-xl border border-border/30 hover:border-border transition-colors">
+              <div class="w-12 h-12 bg-muted/50 rounded-lg flex items-center justify-center shrink-0">
+                <svg class="text-muted-foreground/40 w-6 h-6"
+                     xmlns="http://www.w3.org/2000/svg"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="2">
+                  <path d="M12 2v10l4.5 4.5" />
+                  <circle cx="12" cy="12" r="10" />
+                </svg>
+              </div>
+              <div class="min-w-0 flex-1">
+                <h5 class="font-bold text-foreground text-sm truncate">{{ b.spot.title }}</h5>
+                <p class="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mt-1">
+                  {{ b.start_datetime|date:"M d, Y" }}
+                </p>
+              </div>
+              <div class="text-right">
+                <p class="font-black text-sm text-foreground">₹{{ b.final_price }}</p>
+                <span class="text-[9px] font-black uppercase tracking-widest {% if b.status == 'completed' %}text-primary{% elif b.status == 'cancelled' %}text-muted-foreground{% else %}text-red-500{% endif %}">
+                  {{ b.status }}
+                </span>
+              </div>
+            </div>
+          {% empty %}
+            <div class="col-span-full py-8 text-center bg-foreground/5 rounded-2xl border border-border border-dashed">
+              <p class="text-muted-foreground font-medium">You have no past bookings yet.</p>
+            </div>
+          {% endfor %}
         </div>
       </section>
     </div>
   </div>
+  <script>
+      function revealOTP(btn, otp) {
+          btn.innerHTML = `
+        <div class="flex items-center justify-center gap-3 animate-in zoom-in duration-300">
+          <span class="text-[10px] font-black opacity-50 uppercase">Code:</span>
+          <span class="text-2xl font-mono font-black tracking-[0.2em] text-foreground">${otp}</span>
+        </div>
+      `;
+          btn.classList.remove('btn-primary');
+          btn.classList.add('bg-primary/10', 'border', 'border-primary/30', 'cursor-default');
+          btn.removeAttribute('onclick');
+      }
+  </script>
 {% endblock content %}

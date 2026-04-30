@@ -30,6 +30,7 @@
     resultsCount: $("#results-count"),
     locationText: $("#location-text"),
     recenterBtn: $("#recenter-btn"),
+    redoSearchBtn: $("#redo-search-btn"),
     cardTpl: $("#spot-card-tpl"),
   };
 
@@ -39,6 +40,7 @@
   // Init
   function init() {
     initMap();
+    fetchSpots(); // Fetch immediately to clear skeleton faster
     getLocation();
     bindEvents();
   }
@@ -46,7 +48,7 @@
   // Map
   function initMap() {
     state.map = SpotMap.create("spot-map", {
-      style: "auto",
+      style: "voyager",
     });
   }
 
@@ -104,7 +106,7 @@
     const v = els.vehicleFilter.value;
     if (v) params.set("vehicle_size", v);
     state.activeFilters.forEach((f) => params.set(f, "1"));
-    
+
     const startEl = document.getElementById("filter-start");
     const endEl = document.getElementById("filter-end");
     if (startEl && startEl.value) params.set("start_time", startEl.value);
@@ -176,7 +178,15 @@
 
       // Book button — link to spot detail
       const bookBtn = card.querySelector('[data-field="book-btn"]');
-      bookBtn.href = "/driver/spot/" + spot.id + "/";
+      let detailUrl = "/driver/spot/" + spot.id + "/";
+
+      const startEl = document.getElementById("filter-start");
+      const endEl = document.getElementById("filter-end");
+      if (startEl && startEl.value && endEl && endEl.value) {
+        detailUrl += `?start=${encodeURIComponent(startEl.value)}&end=${encodeURIComponent(endEl.value)}`;
+      }
+
+      bookBtn.href = detailUrl;
       bookBtn.addEventListener("click", (e) => e.stopPropagation());
 
       // Staggered entrance animation
@@ -212,10 +222,15 @@
     state.markers.forEach((m) => state.map.removeLayer(m.marker));
     state.markers = [];
 
-    const icon = SpotMap.spotIcon();
-
     state.spots.forEach((spot) => {
-      const marker = L.marker([spot.lat, spot.lng], { icon })
+      const priceIcon = L.divIcon({
+        className: "custom-price-container",
+        html: `<div class="price-marker">₹${spot.rate}</div>`,
+        iconSize: [null, 28],
+        iconAnchor: [30, 28],
+      });
+
+      const marker = L.marker([spot.lat, spot.lng], { icon: priceIcon })
         .addTo(state.map)
         .bindPopup(
           '<div class="p-1" style="min-width:180px">' +
@@ -234,7 +249,9 @@
                 spot.distance_km +
                 " km</span>"
               : "") +
-            "</div></div>",
+            "</div>" +
+            '<a href="https://www.google.com/maps/dir/?api=1&destination=' + spot.lat + ',' + spot.lng + '" target="_blank" rel="noopener noreferrer" class="block text-center mt-2 pt-2 border-t border-gray-200 dark:border-gray-700 text-xs font-semibold text-brand-primary hover:underline">' +
+            '↗ Get Directions</a></div>',
         );
       state.markers.push({ spotId: spot.id, marker });
     });
@@ -245,14 +262,46 @@
     }
   }
 
+  async function handleSearchSubmit() {
+    const q = els.searchInput.value.trim();
+    if (!q) {
+      fetchSpots();
+      return;
+    }
+
+    setLocationStatus("Searching location…", true);
+    try {
+      const results = await SpotMap.searchPlaces(q, 1);
+      if (results && results.length > 0) {
+        const place = results[0];
+        state.lat = parseFloat(place.lat);
+        state.lng = parseFloat(place.lon);
+        setLocationStatus("Location found", true);
+        centerMapOnUser();
+        fetchSpots();
+      } else {
+        setLocationStatus("Location not found", false);
+        fetchSpots();
+      }
+    } catch (e) {
+      setLocationStatus("Search failed", false);
+      fetchSpots();
+    }
+
+    // Smooth scroll to results
+    if (window.lenis) {
+      window.lenis.scrollTo("#spots-grid", { offset: -100, duration: 1.2 });
+    }
+  }
+
   // Events
   function bindEvents() {
-    els.searchBtn.addEventListener("click", fetchSpots);
+    els.searchBtn.addEventListener("click", handleSearchSubmit);
     els.searchInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") fetchSpots();
+      if (e.key === "Enter") handleSearchSubmit();
     });
     els.vehicleFilter.addEventListener("change", fetchSpots);
-    
+
     const startEl = document.getElementById("filter-start");
     const endEl = document.getElementById("filter-end");
     if (startEl) startEl.addEventListener("change", fetchSpots);
@@ -278,6 +327,25 @@
     els.recenterBtn.addEventListener("click", () => {
       state.lat && state.lng ? centerMapOnUser() : getLocation();
     });
+
+    if (state.map) {
+      state.map.on("dragend", () => {
+        if (els.redoSearchBtn) els.redoSearchBtn.classList.remove("hidden");
+      });
+      state.map.on("zoomend", () => {
+        if (els.redoSearchBtn) els.redoSearchBtn.classList.remove("hidden");
+      });
+    }
+
+    if (els.redoSearchBtn) {
+      els.redoSearchBtn.addEventListener("click", () => {
+        els.redoSearchBtn.classList.add("hidden");
+        const center = state.map.getCenter();
+        state.lat = center.lat;
+        state.lng = center.lng;
+        fetchSpots();
+      });
+    }
   }
 
   // Loading

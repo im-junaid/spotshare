@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "driver",
 ]
 
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -118,12 +119,21 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+
+# Authentication URLs
+LOGIN_URL = "core:login"
+LOGIN_REDIRECT_URL = "core:home"
+LOGOUT_REDIRECT_URL = "core:home"
+
 AUTH_USER_MODEL = "users.User"
 
 AUTHENTICATION_BACKENDS = [
     "users.backends.PasswordlessAuthBackend",
     "django.contrib.auth.backends.ModelBackend",  # Keep for admin login
 ]
+
+LOGIN_URL = "core:login"
+LOGIN_REDIRECT_URL = "core:home"
 
 # Gmail SMTP Config
 # NOTE: for dev only, not send real email
@@ -164,7 +174,7 @@ CELERY_RESULT_SERIALIZER = "json"
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Asia/Kolkata"
 
 USE_I18N = True
 

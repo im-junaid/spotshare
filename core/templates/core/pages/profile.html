@@ -1,0 +1,239 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% block title %}
+  My Profile — SpotShare
+{% endblock title %}
+{% block content %}
+  <div class="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8 mt-20">
+    <!-- Header -->
+    <div class="mb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <h1 class="text-4xl md:text-5xl font-black text-foreground tracking-tighter">My Profile</h1>
+      <p class="text-muted-foreground mt-2 font-medium">Manage your account details.</p>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <!-- Left: Profile Card -->
+      <div class="lg:col-span-1 animate-in fade-in slide-in-from-bottom-6 duration-700 delay-100 fill-mode-both">
+        <div class="bg-card border border-border rounded-2xl p-6 md:p-8 shadow-xl text-center">
+          <!-- Avatar -->
+          <div class="w-24 h-24 bg-brand-primary/15 text-brand-primary rounded-full flex items-center justify-center mx-auto mb-5 text-4xl font-black border-2 border-brand-primary/30">
+            {{ profile_user.full_name|first|upper }}
+          </div>
+          <h2 class="text-xl font-bold text-foreground">{{ profile_user.full_name }}</h2>
+          <p class="text-sm text-muted-foreground mt-1">{{ profile_user.email }}</p>
+          <p class="text-xs text-muted-foreground mt-3 flex items-center justify-center gap-1.5">
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 width="14"
+                 height="14"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2"
+                 stroke-linecap="round"
+                 stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+            </svg>
+            Member since {{ profile_user.date_joined|date:"M Y" }}
+          </p>
+          <!-- Quick Stats -->
+          <div class="grid grid-cols-3 gap-3 mt-8 pt-6 border-t border-border">
+            <div>
+              <p class="text-2xl font-black text-foreground">{{ total_bookings }}</p>
+              <p class="text-[10px] text-muted-foreground uppercase tracking-widest font-bold mt-1">Bookings</p>
+            </div>
+            <div>
+              <p class="text-2xl font-black text-foreground">{{ completed_bookings }}</p>
+              <p class="text-[10px] text-muted-foreground uppercase tracking-widest font-bold mt-1">Completed</p>
+            </div>
+            <div>
+              <p class="text-2xl font-black text-foreground">{{ spots_listed }}</p>
+              <p class="text-[10px] text-muted-foreground uppercase tracking-widest font-bold mt-1">Spots</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Right: Info & Edit -->
+      <div class="lg:col-span-2 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200 fill-mode-both space-y-6">
+        <div id="profile-view"
+             class="bg-card border border-border rounded-2xl p-6 md:p-8 shadow-xl">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg"
+                   width="16"
+                   height="16"
+                   viewBox="0 0 24 24"
+                   fill="none"
+                   stroke="currentColor"
+                   stroke-width="2"
+                   stroke-linecap="round"
+                   stroke-linejoin="round"
+                   class="text-brand-primary">
+                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+              Personal Information
+            </h3>
+            <button id="edit-btn"
+                    type="button"
+                    class="btn btn-outline text-xs font-bold flex items-center gap-1.5 px-4 py-2 hover:border-brand-primary/50 hover:text-brand-primary transition-all">
+              <svg xmlns="http://www.w3.org/2000/svg"
+                   width="14"
+                   height="14"
+                   viewBox="0 0 24 24"
+                   fill="none"
+                   stroke="currentColor"
+                   stroke-width="2"
+                   stroke-linecap="round"
+                   stroke-linejoin="round">
+                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                <path d="m15 5 4 4" />
+              </svg>
+              Edit
+            </button>
+          </div>
+          <div class="space-y-5">
+            <div class="flex flex-col gap-1">
+              <span class="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Full Name</span>
+              <span class="text-base font-semibold text-foreground">{{ profile_user.full_name }}</span>
+            </div>
+            <div class="flex flex-col gap-1">
+              <span class="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Email Address</span>
+              <span class="text-base font-semibold text-foreground">{{ profile_user.email }}</span>
+            </div>
+            <div class="flex flex-col gap-1">
+              <span class="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Phone Number</span>
+              <span class="text-base font-semibold text-foreground">{{ profile_user.phone|default:"Not set" }}</span>
+            </div>
+          </div>
+        </div>
+        <!-- Edit Form (hidden by default) -->
+        <div id="profile-edit"
+             class="bg-card border border-border rounded-2xl p-6 md:p-8 shadow-xl hidden">
+          <h3 class="text-xs font-black uppercase tracking-widest text-muted-foreground mb-6 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 width="16"
+                 height="16"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2"
+                 stroke-linecap="round"
+                 stroke-linejoin="round"
+                 class="text-brand-primary">
+              <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+              <path d="m15 5 4 4" />
+            </svg>
+            Edit Profile
+          </h3>
+          <form method="post" action="{% url 'core:profile' %}" class="space-y-6">
+            {% csrf_token %}
+            <!-- Email (read-only) -->
+            <div class="flex flex-col gap-2">
+              <label class="text-xs text-muted-foreground font-semibold uppercase tracking-widest"
+                     for="email-field">Email Address</label>
+              <input type="email"
+                     id="email-field"
+                     value="{{ profile_user.email }}"
+                     disabled
+                     class="w-full px-4 py-3.5 rounded-xl bg-muted/50 border border-border text-muted-foreground cursor-not-allowed text-sm font-medium">
+              <p class="text-[10px] text-muted-foreground/60">Email cannot be changed.</p>
+            </div>
+            <!-- Full Name -->
+            <div class="flex flex-col gap-2">
+              <label class="text-xs text-muted-foreground font-semibold uppercase tracking-widest"
+                     for="name-field">Full Name</label>
+              <input type="text"
+                     name="full_name"
+                     id="name-field"
+                     value="{{ profile_user.full_name }}"
+                     required
+                     minlength="4"
+                     placeholder="Your full name"
+                     class="w-full px-4 py-3.5 rounded-xl bg-foreground/5 border-2 border-transparent hover:border-border text-foreground text-sm font-medium focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/20 transition-all outline-none">
+            </div>
+            <!-- Phone -->
+            <div class="flex flex-col gap-2">
+              <label class="text-xs text-muted-foreground font-semibold uppercase tracking-widest"
+                     for="phone-field">Phone Number</label>
+              <input type="tel"
+                     name="phone"
+                     id="phone-field"
+                     value="{{ profile_user.phone }}"
+                     required
+                     minlength="10"
+                     maxlength="15"
+                     pattern="[0-9]+"
+                     placeholder="9876543210"
+                     class="w-full px-4 py-3.5 rounded-xl bg-foreground/5 border-2 border-transparent hover:border-border text-foreground text-sm font-medium focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/20 transition-all outline-none">
+            </div>
+            <!-- Actions -->
+            <div class="flex items-center justify-between pt-4 border-t border-border">
+              <button type="button"
+                      id="cancel-edit-btn"
+                      class="text-xs text-muted-foreground hover:text-foreground underline underline-offset-4 transition-colors cursor-pointer">
+                Cancel
+              </button>
+              <button type="submit"
+                      class="btn btn-primary px-8 py-3.5 font-black uppercase tracking-widest text-xs shadow-lg shadow-brand-primary/20">
+                Save Changes
+              </button>
+            </div>
+          </form>
+        </div>
+        <!-- Account Info Card -->
+        <div class="bg-card border border-border rounded-2xl p-6 md:p-8 shadow-xl">
+          <h3 class="text-xs font-black uppercase tracking-widest text-muted-foreground mb-5 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 width="16"
+                 height="16"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2"
+                 stroke-linecap="round"
+                 stroke-linejoin="round"
+                 class="text-brand-primary">
+              <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+            Account & Security
+          </h3>
+          <div class="space-y-4">
+            <div class="flex justify-between text-sm">
+              <span class="text-muted-foreground font-medium">Authentication</span>
+              <span class="font-bold text-foreground">Email OTP (Passwordless)</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-muted-foreground font-medium">Account Status</span>
+              <span class="font-black text-[10px] uppercase tracking-widest {% if profile_user.is_active %} text-green-500 {% else %} text-amber-400  {% endif %}">{{ profile_user.is_active|yesno:"Active,Inactive" }}</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-muted-foreground font-medium">Joined</span>
+              <span class="font-bold text-foreground">{{ profile_user.date_joined|date:"M d, Y" }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+      document.addEventListener('DOMContentLoaded', () => {
+          const viewEl = document.getElementById('profile-view');
+          const editEl = document.getElementById('profile-edit');
+          const editBtn = document.getElementById('edit-btn');
+          const cancelBtn = document.getElementById('cancel-edit-btn');
+
+          editBtn.addEventListener('click', () => {
+              viewEl.classList.add('hidden');
+              editEl.classList.remove('hidden');
+              editEl.classList.add('animate-in', 'fade-in', 'slide-in-from-bottom-4', 'duration-300');
+              document.getElementById('name-field').focus();
+          });
+
+          cancelBtn.addEventListener('click', () => {
+              editEl.classList.add('hidden');
+              viewEl.classList.remove('hidden');
+              viewEl.classList.add('animate-in', 'fade-in', 'duration-200');
+          });
+      });
+  </script>
+{% endblock content %}

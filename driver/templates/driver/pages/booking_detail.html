@@ -4,10 +4,11 @@
   Parking Pass — SpotShare
 {% endblock title %}
 {% block content %}
-  <div class="max-w-md mx-auto py-12 px-4 sm:px-6">
-    <div class="mb-6">
+  <div class="max-w-5xl mx-auto py-12 px-4 sm:px-6 lg:px-8 mt-20">
+    <!-- Back Link -->
+    <div class="mb-8">
       <a href="{% url 'driver:home' %}"
-         class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-brand-primary">
+         class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-brand-primary transition-colors">
         <svg xmlns="http://www.w3.org/2000/svg"
              width="16"
              height="16"
@@ -20,47 +21,53 @@
         Back to Dashboard
       </a>
     </div>
-    <div class="bg-card border border-border rounded-3xl overflow-hidden shadow-2xl">
-      <!-- Spot Info Header -->
-      <div class="relative h-48 bg-muted">
-        {% if booking.spot.primary_image %}
-          <img src="{{ booking.spot.primary_image.image.url }}"
-               alt="{{ booking.spot.title }}"
-               class="w-full h-full object-cover">
-        {% endif %}
-        <div class="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent"></div>
-        <div class="absolute bottom-4 left-4 right-4">
-          <span class="px-2 py-1 bg-brand-primary text-black rounded text-[10px] font-bold uppercase tracking-wider mb-2 inline-block">
-            {{ booking.status|replace:"_,-" }}
-          </span>
-          <h1 class="text-2xl font-bold font-display text-white">{{ booking.spot.title }}</h1>
-          <p class="text-sm text-white/80 mt-1 truncate">{{ booking.spot.address }}</p>
-        </div>
-      </div>
-      <div class="p-6 space-y-6">
-        <!-- Time & Price -->
-        <div class="flex items-center justify-between border-b border-border pb-6">
-          <div>
-            <p class="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mb-1">Time Slot</p>
-            <p class="text-sm font-semibold text-foreground">{{ booking.start_datetime|date:"M d, g:i A" }}</p>
-            <p class="text-sm font-semibold text-foreground">to {{ booking.end_datetime|date:"g:i A" }}</p>
-          </div>
-          <div class="text-right">
-            <p class="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mb-1">Paid</p>
-            <p class="text-2xl font-bold text-brand-primary">₹{{ booking.final_price }}</p>
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+      <!-- Left Column: Spot Info + Map  -->
+      <div class="lg:col-span-3 space-y-6">
+        <!-- Hero Image Card -->
+        <div class="bg-card border border-border rounded-2xl overflow-hidden shadow-xl">
+          <div class="relative h-56 md:h-72 lg:h-80 bg-muted">
+            {% if booking.spot.primary_image %}
+              <img src="{{ booking.spot.primary_image.image.url }}"
+                   alt="{{ booking.spot.title }}"
+                   class="w-full h-full object-cover">
+            {% endif %}
+            <div class="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent"></div>
+            <div class="absolute bottom-5 left-5 right-5">
+              <span class="px-3 py-1.5 bg-brand-primary text-black rounded-lg text-[10px] font-black uppercase tracking-widest mb-3 inline-block shadow-lg">
+                {{ booking.get_status_display }}
+              </span>
+              <h1 class="text-2xl md:text-3xl font-black font-display text-white">{{ booking.spot.title }}</h1>
+              <p class="text-sm text-white/80 mt-1.5 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     width="14"
+                     height="14"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="2"
+                     stroke-linecap="round"
+                     stroke-linejoin="round">
+                  <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+                {{ booking.spot.address }}
+              </p>
+            </div>
           </div>
         </div>
         <!-- Access Instructions -->
         {% if booking.spot.instructions %}
-          <div class="bg-muted/30 p-4 rounded-2xl border border-border">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-2">
+          <div class="bg-card border border-border rounded-2xl p-6 md:p-8 shadow-lg">
+            <h3 class="text-xs font-black uppercase tracking-widest text-muted-foreground mb-4 flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg"
-                   width="14"
-                   height="14"
+                   width="16"
+                   height="16"
                    viewBox="0 0 24 24"
                    fill="none"
                    stroke="currentColor"
-                   stroke-width="2">
+                   stroke-width="2"
+                   class="text-primary">
                 <circle cx="12" cy="12" r="10" />
                 <path d="M12 16v-4" />
                 <path d="M12 8h.01" />
@@ -70,113 +77,218 @@
             <p class="text-sm text-foreground/80 leading-relaxed">{{ booking.spot.instructions }}</p>
           </div>
         {% endif %}
-        <!-- Actions (Navigation + OTP) -->
-        <div class="pt-2">
-          <a href="{{ booking.google_maps_url }}"
-             target="_blank"
-             class="btn border border-brand-primary/50 text-brand-primary hover:bg-brand-primary/10 w-full py-3 gap-2 mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg"
-                 width="18"
-                 height="18"
-                 viewBox="0 0 24 24"
-                 fill="none"
-                 stroke="currentColor"
-                 stroke-width="2"
-                 stroke-linecap="round"
-                 stroke-linejoin="round">
-              <path d="m22 2-7 20-4-9-9-4Z" />
-              <path d="M22 2 11 13" />
-            </svg>
-            Get Directions
-          </a>
-          {% if booking.status == "confirmed" %}
-            {% if booking.is_otp_revealable %}
-              <div id="otp-container"
-                   class="bg-brand-primary/10 border border-brand-primary/30 rounded-2xl p-6 text-center">
-                <h3 class="text-sm font-semibold text-brand-primary mb-3">Your Parking Pass</h3>
-                <p class="text-xs text-muted-foreground mb-4">Show this code to the host when you arrive.</p>
-                <button id="reveal-btn"
-                        class="btn btn-primary w-full py-3 shadow-lg shadow-brand-primary/20">Reveal OTP</button>
-                <div id="otp-display" class="hidden">
-                  <div class="text-5xl font-mono tracking-[0.25em] font-bold text-foreground py-2 pl-4">{{ booking.otp }}</div>
-                </div>
-              </div>
-              <!-- Cancel option only when not active -->
-              <form action="{% url 'driver:cancel_booking' pk=booking.pk %}"
-                    method="post"
-                    class="mt-6 text-center"
-                    onsubmit="return confirm('Are you sure you want to cancel this booking?');">
-                {% csrf_token %}
-                <button type="submit"
-                        class="text-xs text-muted-foreground hover:text-red-500 underline underline-offset-4 transition-colors">
-                  Cancel Booking
-                </button>
-              </form>
-            {% else %}
-              <div class="bg-muted/50 border border-border rounded-2xl p-6 text-center">
-                <div class="w-12 h-12 bg-background rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm border border-border">
-                  <svg xmlns="http://www.w3.org/2000/svg"
-                       width="20"
-                       height="20"
-                       viewBox="0 0 24 24"
-                       fill="none"
-                       stroke="currentColor"
-                       stroke-width="2"
-                       stroke-linecap="round"
-                       stroke-linejoin="round"
-                       class="text-muted-foreground">
-                    <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
-                  </svg>
-                </div>
-                <h3 class="text-sm font-semibold text-foreground">Too Early for OTP</h3>
-                <p class="text-xs text-muted-foreground mt-2">
-                  Your OTP will automatically appear here when your parking time begins at {{ booking.start_datetime|date:"g:i A" }}.
-                </p>
-              </div>
-              <form action="{% url 'driver:cancel_booking' pk=booking.pk %}"
-                    method="post"
-                    class="mt-6 text-center"
-                    onsubmit="return confirm('Are you sure you want to cancel this booking?');">
-                {% csrf_token %}
-                <button type="submit"
-                        class="text-xs text-muted-foreground hover:text-red-500 underline underline-offset-4 transition-colors">
-                  Cancel Booking
-                </button>
-              </form>
-            {% endif %}
-          {% elif booking.status == "active" %}
-            <div class="bg-green-500/10 border border-green-500/30 rounded-2xl p-6 text-center">
-              <div class="w-16 h-16 bg-green-500/20 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+        <!-- Directions Button -->
+        <a href="{{ booking.spot.google_maps_url }}"
+           target="_blank"
+           class="btn border border-brand-primary/50 text-brand-primary hover:bg-brand-primary/10 w-full py-4 gap-3 rounded-2xl font-black uppercase tracking-widest text-xs transition-all flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg"
+               width="18"
+               height="18"
+               viewBox="0 0 24 24"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="2"
+               stroke-linecap="round"
+               stroke-linejoin="round">
+            <path d="m22 2-7 20-4-9-9-4Z" />
+            <path d="M22 2 11 13" />
+          </svg>
+          Get Directions
+        </a>
+      </div>
+      <!-- Right Column: Time/Price + OTP/Status -->
+      <div class="lg:col-span-2 space-y-6">
+        <!-- Time & Price Card -->
+        <div class="bg-card border border-border rounded-2xl p-6 md:p-8 shadow-xl">
+          <div class="flex items-center gap-4 mb-6">
+            <div>
+              <p class="text-[10px] text-muted-foreground uppercase font-black tracking-widest mb-2">Time Slot</p>
+              <p class="text-base font-bold text-foreground">{{ booking.start_datetime|date:"M d, g:i A" }}</p>
+              <p class="text-base font-bold text-foreground">to {{ booking.end_datetime|date:"g:i A" }}</p>
+            </div>
+            <div class="text-right">
+              <p class="text-3xl font-black text-brand-primary">₹{{ booking.final_price }}</p>
+            </div>
+          </div>
+          <!-- Booking Meta -->
+          <div class="border-t border-border pt-5 space-y-3">
+            <div class="flex justify-between text-sm">
+              <span class="text-muted-foreground font-medium">Booking ID</span>
+              <span class="font-bold text-foreground">#{{ booking.pk }}</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-muted-foreground font-medium">Status</span>
+              <span class="font-black uppercase text-[10px] tracking-widest {% if booking.status == 'confirmed' %}text-brand-primary {% elif booking.status == 'active' %}text-green-500 {% elif booking.status == 'completed' %}text-primary {% elif booking.status == 'cancelled' %}text-muted-foreground {% else %}text-red-500{% endif %}">
+                {{ booking.get_status_display }}
+              </span>
+            </div>
+          </div>
+        </div>
+        <!-- OTP / Status Section -->
+        {% if booking.status == "confirmed" %}
+          {% if booking.is_otp_revealable %}
+            <div id="otp-container"
+                 class="bg-brand-primary/10 border border-brand-primary/30 rounded-2xl p-6 md:p-8 text-center shadow-lg">
+              <div class="w-14 h-14 bg-brand-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg xmlns="http://www.w3.org/2000/svg"
-                     width="32"
-                     height="32"
+                     width="24"
+                     height="24"
                      viewBox="0 0 24 24"
                      fill="none"
                      stroke="currentColor"
                      stroke-width="2"
                      stroke-linecap="round"
-                     stroke-linejoin="round">
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                  <path d="m9 11 3 3L22 4" />
+                     stroke-linejoin="round"
+                     class="text-brand-primary">
+                  <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                 </svg>
               </div>
-              <h3 class="text-lg font-bold text-green-500">You're Parked!</h3>
-              <p class="text-sm text-foreground/70 mt-2">
-                Your OTP was verified at {{ booking.otp_verified_at|date:"g:i A" }}. Leave your vehicle until the slot ends.
+              <h3 class="text-base font-bold text-brand-primary mb-2">Your Parking Pass</h3>
+              <p class="text-xs text-muted-foreground mb-5">Show this code to the host when you arrive.</p>
+              <button id="reveal-btn"
+                      onclick="document.getElementById('otp-display').classList.remove('hidden'); this.classList.add('hidden');"
+                      class="btn btn-primary rounded-full w-full py-4 shadow-lg shadow-brand-primary/20 font-black uppercase tracking-widest text-sm">
+                Reveal OTP
+              </button>
+              <div id="otp-display" class="hidden animate-in zoom-in duration-300">
+                <div class="bg-foreground/5 rounded-2xl py-6 mt-4 border border-border">
+                  <div class="text-xs text-muted-foreground uppercase tracking-widest font-bold mb-2">Your 4-Digit Code</div>
+                  <div class="font-mono tracking-[0.25em] font-black text-brand-primary pl-4">
+                    {% if booking.otp %}
+                      {{ booking.otp }}
+                    {% else %}
+                      NO OTP GENERATED
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Cancel option -->
+            <form action="{% url 'driver:cancel_booking' pk=booking.pk %}"
+                  method="post"
+                  class="text-center"
+                  onsubmit="return confirm('Are you sure you want to cancel this booking?');">
+              {% csrf_token %}
+              <button type="submit"
+                      class="text-xs text-muted-foreground hover:text-red-500 underline underline-offset-4 transition-colors">
+                Cancel Booking
+              </button>
+            </form>
+          {% else %}
+            <div class="bg-muted/50 border border-border rounded-2xl p-6 md:p-8 text-center shadow-lg">
+              <div class="w-14 h-14 bg-background rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm border border-border">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     width="22"
+                     height="22"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="2"
+                     stroke-linecap="round"
+                     stroke-linejoin="round"
+                     class="text-muted-foreground">
+                  <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+                </svg>
+              </div>
+              <h3 class="text-base font-bold text-foreground">Too Early for OTP</h3>
+              <p class="text-xs text-muted-foreground mt-2 leading-relaxed">
+                Your OTP will automatically appear here when your parking time begins at {{ booking.start_datetime|date:"g:i A" }}.
               </p>
             </div>
-          {% elif booking.status == "completed" %}
-            <div class="bg-muted border border-border rounded-2xl p-6 text-center">
-              <h3 class="text-lg font-bold text-foreground">Trip Completed</h3>
-              <p class="text-sm text-muted-foreground mt-2">Thanks for using SpotShare.</p>
-            </div>
-          {% elif booking.status == "no_show" %}
-            <div class="bg-red-500/10 border border-red-500/30 rounded-2xl p-6 text-center">
-              <h3 class="text-lg font-bold text-red-500">Marked as No-Show</h3>
-              <p class="text-sm text-foreground/70 mt-2">You didn't arrive within the grace period.</p>
-            </div>
+            <form action="{% url 'driver:cancel_booking' pk=booking.pk %}"
+                  method="post"
+                  class="text-center"
+                  onsubmit="return confirm('Are you sure you want to cancel this booking?');">
+              {% csrf_token %}
+              <button type="submit"
+                      class="text-xs text-muted-foreground hover:text-red-500 underline underline-offset-4 transition-colors">
+                Cancel Booking
+              </button>
+            </form>
           {% endif %}
-        </div>
+        {% elif booking.status == "active" %}
+          <div class="bg-green-500/10 border border-green-500/30 rounded-2xl p-6 md:p-8 text-center shadow-lg">
+            <div class="w-16 h-16 bg-green-500/20 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg"
+                   width="32"
+                   height="32"
+                   viewBox="0 0 24 24"
+                   fill="none"
+                   stroke="currentColor"
+                   stroke-width="2"
+                   stroke-linecap="round"
+                   stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                <path d="m9 11 3 3L22 4" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-bold text-green-500">You're Parked!</h3>
+            <p class="text-sm text-foreground/70 mt-2">
+              Your OTP was verified at {{ booking.otp_verified_at|date:"g:i A" }}. Leave your vehicle until the slot ends.
+            </p>
+          </div>
+        {% elif booking.status == "completed" %}
+          <div class="bg-card border border-border rounded-2xl p-6 md:p-8 text-center shadow-lg">
+            <div class="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg"
+                   width="28"
+                   height="28"
+                   viewBox="0 0 24 24"
+                   fill="none"
+                   stroke="currentColor"
+                   stroke-width="2"
+                   stroke-linecap="round"
+                   stroke-linejoin="round">
+                <path d="m9 11 3 3L22 4" />
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-bold text-foreground">Trip Completed</h3>
+            <p class="text-sm text-muted-foreground mt-2">Thanks for using SpotShare.</p>
+          </div>
+        {% elif booking.status == "no_show" %}
+          <div class="bg-red-500/10 border border-red-500/30 rounded-2xl p-6 md:p-8 text-center shadow-lg">
+            <div class="w-16 h-16 bg-red-500/20 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg"
+                   width="28"
+                   height="28"
+                   viewBox="0 0 24 24"
+                   fill="none"
+                   stroke="currentColor"
+                   stroke-width="2"
+                   stroke-linecap="round"
+                   stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <path d="m15 9-6 6" />
+                <path d="m9 9 6 6" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-bold text-red-500">Marked as No-Show</h3>
+            <p class="text-sm text-foreground/70 mt-2">You didn't arrive within the grace period.</p>
+          </div>
+        {% elif booking.status == "cancelled" %}
+          <div class="bg-muted/50 border border-border rounded-2xl p-6 md:p-8 text-center shadow-lg">
+            <div class="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg"
+                   width="28"
+                   height="28"
+                   viewBox="0 0 24 24"
+                   fill="none"
+                   stroke="currentColor"
+                   stroke-width="2"
+                   stroke-linecap="round"
+                   stroke-linejoin="round"
+                   class="text-muted-foreground">
+                <circle cx="12" cy="12" r="10" />
+                <path d="m15 9-6 6" />
+                <path d="m9 9 6 6" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-bold text-foreground">Booking Cancelled</h3>
+            <p class="text-sm text-muted-foreground mt-2">This booking has been cancelled.</p>
+          </div>
+        {% endif %}
       </div>
     </div>
   </div>
