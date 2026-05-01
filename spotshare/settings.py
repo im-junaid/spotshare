@@ -165,10 +165,10 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
-    SECURE_SSL_REDIRECT = True
-    # Replace with your actual Railway domain after first deploy
-    CSRF_TRUSTED_ORIGINS = [os.getenv("RAILWAY_PUBLIC_URL", "https://*.up.railway.app")]
 
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+    CSRF_TRUSTED_ORIGINS = [os.getenv("RAILWAY_PUBLIC_URL", "https://*.up.railway.app")]
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = "static/"
