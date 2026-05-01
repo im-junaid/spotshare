@@ -14,6 +14,7 @@ from pathlib import Path
 import os
 import dj_database_url
 from dotenv import load_dotenv
+import cloudinary
 
 load_dotenv()
 
@@ -175,6 +176,8 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 WHITENOISE_MANIFEST_STRICT = False
 
+cloudinary.config(cloudinary_url=os.getenv("CLOUDINARY_URL"))
+
 STORAGES = {
     # Static files go to WhiteNoise (Local Disk on Railway)
     "staticfiles": {
@@ -185,9 +188,6 @@ STORAGES = {
         "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
     },
 }
-
-# The package will automatically look for 'CLOUDINARY_URL' in your environment.
-CLOUDINARY_STORAGE = {"CLOUDINARY_URL": os.getenv("CLOUDINARY_URL")}
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
