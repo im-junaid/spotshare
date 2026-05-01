@@ -30,7 +30,6 @@ ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")
 # Application definition
 
 INSTALLED_APPS = [
-    "cloudinary_storage",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -38,6 +37,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "cloudinary",
+    "cloudinary_storage",
     "core",
     "users",
     "hosts",
@@ -171,19 +171,23 @@ if not DEBUG:
 
 
 # Static files (CSS, JavaScript, Images)
-
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
+WHITENOISE_MANIFEST_STRICT = False
 
-# Enable WhiteNoise compression and caching
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-
-# Media files (Cloudinary)
-DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
+STORAGES = {
+    # Static files go to WhiteNoise (Local Disk on Railway)
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+    # Media files (User uploads) go to Cloudinary
+    "default": {
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+    },
+}
 
 # The package will automatically look for 'CLOUDINARY_URL' in your environment.
-# We pass it here just to ensure Django is explicitly aware of the config.
 CLOUDINARY_STORAGE = {"CLOUDINARY_URL": os.getenv("CLOUDINARY_URL")}
 
 MEDIA_URL = "/media/"
