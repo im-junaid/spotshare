@@ -14,6 +14,7 @@ from pathlib import Path
 import os
 import dj_database_url
 from dotenv import load_dotenv
+import cloudinary
 
 load_dotenv()
 
@@ -134,11 +135,13 @@ LOGIN_REDIRECT_URL = "core:home"
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 465
-EMAIL_USE_TLS = False
 EMAIL_USE_SSL = True
+EMAIL_USE_TLS = False
+EMAIL_TIMEOUT = 10
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = os.getenv("EMAIL_HOST_USER")
+
 
 # --- REDIS & CACHE ---
 # Railway provides REDIS_URL automatically when you add the Redis service
@@ -161,22 +164,26 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = TIME_ZONE
 
+CELERY_WORKER_PREFETCH_MULTIPLIER = 1
+CELERY_TASK_ACKS_LATE = True
+
 # --- PRODUCTION SECURITY ---
-if not DEBUG:
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    SECURE_BROWSER_XSS_FILTER = True
-    SECURE_CONTENT_TYPE_NOSNIFF = True
 
-    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
 
-    CSRF_TRUSTED_ORIGINS = [os.getenv("RAILWAY_PUBLIC_URL", "https://*.up.railway.app")]
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+CSRF_TRUSTED_ORIGINS = [os.getenv("RAILWAY_PUBLIC_URL", "https://*.up.railway.app")]
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 WHITENOISE_MANIFEST_STRICT = False
+
+cloudinary.config(cloudinary_url=os.getenv("CLOUDINARY_URL"))
 
 STORAGES = {
     # Static files go to WhiteNoise (Local Disk on Railway)
@@ -188,9 +195,6 @@ STORAGES = {
         "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
     },
 }
-
-# The package will automatically look for 'CLOUDINARY_URL' in your environment.
-CLOUDINARY_STORAGE = {"CLOUDINARY_URL": os.getenv("CLOUDINARY_URL")}
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
