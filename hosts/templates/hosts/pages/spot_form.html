@@ -9,7 +9,7 @@
   — SpotShare
 {% endblock title %}
 {% block head %}
-  <link rel="stylesheet" href="{% static 'lib/leaflet/leaflet.css' %}">
+  <link rel="stylesheet" href="{% static 'jslib/leaflet/leaflet.css' %}">
   <style>
       /* Wizard step transitions */
       .wizard-step {
@@ -397,9 +397,7 @@
       <div class="wizard-step" data-step="2">
         <div class="mb-8">
           <h1 class="text-3xl font-bold text-foreground mb-2">Add Photos</h1>
-          <p class="text-muted-foreground text-sm">
-            Upload 1 to 3 photos of your spot.
-          </p>
+          <p class="text-muted-foreground text-sm">Upload 1 to 3 photos of your spot.</p>
         </div>
         {{ image_formset.management_form }}
         {% if image_formset.non_form_errors %}
@@ -540,7 +538,7 @@
   </div>
 {% endblock content %}
 {% block scripts %}
-  <script src="{% static 'lib/leaflet/leaflet.js' %}"></script>
+  <script src="{% static 'jslib/leaflet/leaflet.js' %}"></script>
   <script src="{% static 'js/spotshare-map.js' %}"></script>
   <script src="{% static 'js/sport-form.js' %}"></script>
 {% endblock scripts %}

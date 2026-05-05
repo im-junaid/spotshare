@@ -4,7 +4,7 @@
   Find Parking — SpotShare
 {% endblock title %}
 {% block head %}
-  <link rel="stylesheet" href="{% static 'lib/leaflet/leaflet.css' %}">
+  <link rel="stylesheet" href="{% static 'jslib/leaflet/leaflet.css' %}">
   <style>
       /*  MAP  */
       #spot-map {
@@ -546,7 +546,7 @@
   </template>
 {% endblock content %}
 {% block scripts %}
-  <script src="{% static 'lib/leaflet/leaflet.js' %}"></script>
+  <script src="{% static 'jslib/leaflet/leaflet.js' %}"></script>
   <script>
       // Set min time to now
       const searchStart = document.getElementById("filter-start");
